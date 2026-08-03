@@ -1,0 +1,3460 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>学中文 · Học Tiếng Trung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root{
+  --bg-1:#FBF7FF;
+  --bg-2:#FFF6EF;
+  --surface:#FFFFFF;
+  --text:#3D3452;
+  --text-soft:#7A7291;
+  --coral:#FF9E9E;
+  --coral-dark:#F07575;
+  --coral-tint:#FFE7E7;
+  --mint:#8FDDBF;
+  --mint-dark:#59BE9A;
+  --mint-tint:#E3F8F0;
+  --sky:#9ED2F0;
+  --sky-dark:#5FAEDB;
+  --sky-tint:#E6F4FC;
+  --butter:#FFDE9E;
+  --butter-dark:#F0C05C;
+  --lavender:#D9CCF0;
+  --r-lg:28px;
+  --r-md:18px;
+  --r-sm:12px;
+  --shadow:0 10px 28px rgba(120,100,160,0.14);
+  --shadow-sm:0 4px 12px rgba(120,100,160,0.10);
+  --font-hanzi:'Noto Sans SC', sans-serif;
+  --font-ui:'Quicksand', sans-serif;
+  --font-body:'Nunito', sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  background:linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;}
+h1,h2,h3{font-family:var(--font-ui);margin:0;}
+p{margin:0;}
+.hidden{display:none !important;}
+:focus-visible{outline:3px solid var(--coral-dark);outline-offset:2px;}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+#app{
+  max-width:480px;
+  margin:0 auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding-bottom:84px; /* room for bottom nav */
+  position:relative;
+}
+@media(min-width:860px){
+  #app{max-width:720px;padding-bottom:32px;}
+}
+
+/* Topbar */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 20px 10px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:linear-gradient(160deg, var(--bg-1) 60%, transparent);
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mascot{
+  font-size:30px;
+  animation:floatY 3.2s ease-in-out infinite;
+}
+.brand-text h1{font-size:20px;font-weight:700;color:var(--text);letter-spacing:.5px;}
+.brand-text p{font-size:11px;color:var(--text-soft);font-family:var(--font-ui);font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.streak-badge{
+  display:flex;align-items:center;gap:4px;
+  background:var(--surface);
+  border-radius:999px;
+  padding:6px 12px;
+  font-family:var(--font-ui);font-weight:700;font-size:13px;
+  box-shadow:var(--shadow-sm);
+  color:var(--coral-dark);
+}
+.ring{
+  width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--mint-dark) calc(var(--pct,0)*1%), #EDE7F6 0);
+  cursor:pointer;
+  flex-shrink:0;
+}
+.ring-inner{
+  width:32px;height:32px;border-radius:50%;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;font-family:var(--font-ui);color:var(--text);
+}
+
+/* Views */
+main{flex:1;padding:6px 20px 20px;}
+.view{display:none;animation:fadeIn .35s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* Bottom nav (mobile) */
+.bottom-nav{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:var(--surface);
+  box-shadow:0 -6px 20px rgba(120,100,160,0.12);
+  display:flex;
+  justify-content:space-around;
+  padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+  z-index:30;
+}
+@media(min-width:860px){ .bottom-nav{ max-width:720px; margin:0 auto; border-radius:24px 24px 0 0; } }
+.nav-btn{
+  background:none;border:none;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-family:var(--font-ui);font-weight:700;font-size:11px;
+  color:var(--text-soft);
+  padding:6px 14px;border-radius:14px;
+  transition:background .2s, color .2s, transform .15s;
+}
+.nav-btn span.ic{font-size:20px;}
+.nav-btn.active{color:var(--coral-dark);background:var(--coral-tint);}
+.nav-btn:active{transform:scale(0.92);}
+
+/* ============================================================
+   HOME
+   ============================================================ */
+.hero{
+  background:var(--surface);
+  border-radius:var(--r-lg);
+  padding:22px 22px 20px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+  position:relative;
+  overflow:hidden;
+}
+.hero h2{font-size:19px;color:var(--text);margin-bottom:4px;}
+.hero p{font-size:13.5px;color:var(--text-soft);line-height:1.5;font-family:var(--font-body);}
+.hero-progress{margin-top:14px;}
+.bar-track{height:12px;background:#EFE9F8;border-radius:999px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--mint),var(--sky));transition:width .6s cubic-bezier(.4,1.4,.6,1);}
+.bar-label{display:flex;justify-content:space-between;font-family:var(--font-ui);font-size:11px;font-weight:700;color:var(--text-soft);margin-top:6px;}
+
+.info-banner{background:var(--sky-tint);border-radius:var(--r-md);padding:12px 14px;font-size:12px;color:#2d5573;font-family:var(--font-body);margin-bottom:18px;line-height:1.55;}
+.info-banner b{color:#1c3d52;}
+
+.section-title{font-size:15px;font-weight:700;font-family:var(--font-ui);margin:22px 0 12px;color:var(--text);display:flex;align-items:center;gap:6px;}
+
+/* ---- HSK level cards ---- */
+.level-grid{display:flex;flex-direction:column;gap:14px;}
+@media(min-width:640px){ .level-grid{display:grid;grid-template-columns:1fr 1fr 1fr;} }
+.level-card{
+  background:var(--surface);border-radius:var(--r-lg);padding:20px 18px;
+  box-shadow:var(--shadow-sm);text-align:left;border:none;width:100%;
+  transition:transform .18s, box-shadow .18s;
+}
+.level-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.lv-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.lv-badge{width:52px;height:52px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.level-card.c-coral .lv-badge{background:var(--coral-tint);}
+.level-card.c-sky .lv-badge{background:var(--sky-tint);}
+.level-card.c-mint .lv-badge{background:var(--mint-tint);}
+.lv-info h3{font-size:17px;}
+.lv-sub{font-size:12px;color:var(--text-soft);font-family:var(--font-ui);font-weight:700;margin-top:1px;}
+
+/* ---- Batch picker ---- */
+.batch-size-row{display:flex;gap:8px;margin:2px 0 20px;}
+.size-chip{flex:1;background:var(--surface);border:2px solid #EFE9F8;border-radius:14px;padding:10px 4px;text-align:center;font-family:var(--font-ui);font-weight:700;font-size:13px;color:var(--text-soft);transition:all .15s;}
+.size-chip.active{background:var(--coral-tint);border-color:var(--coral-dark);color:var(--coral-dark);}
+.batch-list{display:flex;flex-direction:column;gap:12px;}
+.batch-card{
+  background:var(--surface);border-radius:var(--r-md);padding:15px 16px;
+  box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:14px;
+  text-align:left;border:2px solid transparent;width:100%;
+  transition:transform .15s, opacity .2s;
+}
+.batch-card:not(.locked):hover{transform:translateY(-2px);}
+.batch-card.locked{opacity:.5;}
+.batch-card.mastered{border-color:var(--mint-dark);}
+.batch-num{width:42px;height:42px;border-radius:13px;background:#F3EEFC;display:flex;align-items:center;justify-content:center;font-family:var(--font-ui);font-weight:800;font-size:14px;color:var(--text);flex-shrink:0;}
+.batch-card.mastered .batch-num{background:var(--mint-tint);color:var(--mint-dark);}
+.batch-info{flex:1;min-width:0;}
+.batch-info .b-title{font-family:var(--font-ui);font-weight:700;font-size:13.5px;}
+.batch-info .b-sample{font-family:var(--font-hanzi);font-size:12px;color:var(--text-soft);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.batch-info .lesson-mini-bar{margin-top:8px;}
+.batch-lock,.batch-check{font-size:18px;flex-shrink:0;}
+
+.lesson-mini-bar{height:6px;border-radius:999px;background:#EFE9F8;margin-top:8px;overflow:hidden;}
+.lesson-mini-fill{height:100%;border-radius:999px;}
+.c-coral .lesson-mini-fill{background:var(--coral-dark);}
+.c-sky .lesson-mini-fill{background:var(--sky-dark);}
+.c-mint .lesson-mini-fill{background:var(--mint-dark);}
+
+.en-tag{display:inline-block;font-family:var(--font-ui);font-size:9px;font-weight:800;color:var(--sky-dark);background:var(--sky-tint);border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{
+  font-family:var(--font-ui);font-weight:700;font-size:14px;
+  border:none;border-radius:999px;padding:13px 22px;
+  transition:transform .12s, box-shadow .12s, opacity .12s;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn:active{transform:scale(0.95);}
+.btn-primary{background:var(--coral);color:#fff;box-shadow:0 6px 16px rgba(255,158,158,.45);}
+.btn-primary:hover{background:var(--coral-dark);}
+.btn-mint{background:var(--mint);color:#204436;box-shadow:0 6px 16px rgba(143,221,191,.45);}
+.btn-sky{background:var(--sky);color:#1c3d52;box-shadow:0 6px 16px rgba(158,210,240,.45);}
+.btn-outline{background:var(--surface);color:var(--text);border:2px solid #EFE9F8;}
+.btn-ghost{background:transparent;color:var(--text-soft);padding:8px 12px;}
+.btn-block{width:100%;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-row{display:flex;gap:10px;margin-top:16px;}
+
+/* ============================================================
+   LESSON / FLASHCARDS
+   ============================================================ */
+.lesson-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.back-btn{background:var(--surface);border:none;width:38px;height:38px;border-radius:12px;box-shadow:var(--shadow-sm);font-size:16px;flex-shrink:0;}
+.lesson-header-title{flex:1;min-width:0;}
+.lesson-header-title h2{font-size:17px;}
+.lesson-header-title p{font-size:11.5px;color:var(--text-soft);font-family:var(--font-ui);font-weight:700;}
+.dots{display:flex;gap:5px;justify-content:center;margin:14px 0 16px;flex-wrap:wrap;}
+.dot{width:7px;height:7px;border-radius:50%;background:#E3DBF4;transition:background .2s, transform .2s;}
+.dot.learning{background:var(--butter-dark);}
+.dot.mastered{background:var(--mint-dark);}
+.dot.current{background:var(--coral-dark);transform:scale(1.4);}
+
+.flashcard-wrap{perspective:1400px;height:340px;margin-bottom:6px;}
+@media(min-width:640px){.flashcard-wrap{height:380px;}}
+.flashcard{position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d;cursor:pointer;}
+.flashcard.flipped{transform:rotateY(180deg);}
+.face{
+  position:absolute;inset:0;backface-visibility:hidden;
+  border-radius:var(--r-lg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center;
+  box-shadow:var(--shadow);
+}
+.face-front{background:linear-gradient(155deg,#fff, var(--tint,#F7F3FF));}
+.face-back{transform:rotateY(180deg);background:linear-gradient(155deg,var(--tint,#F7F3FF),#fff);}
+.hanzi-big{font-family:var(--font-hanzi);font-weight:700;font-size:clamp(50px,14vw,76px);color:var(--text);line-height:1;}
+.pinyin-big{font-family:var(--font-ui);font-weight:600;font-size:clamp(19px,5vw,25px);color:var(--text-soft);margin-top:10px;}
+.tap-hint{position:absolute;bottom:14px;font-size:10.5px;color:var(--text-soft);font-family:var(--font-ui);font-weight:700;opacity:.65;}
+.face-emoji{font-size:54px;margin-bottom:6px;}
+.face-english{font-size:22px;font-weight:800;font-family:var(--font-ui);}
+.face-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+.icon-btn{
+  background:#fff;border:none;width:44px;height:44px;border-radius:14px;
+  box-shadow:var(--shadow-sm);font-size:18px;display:flex;align-items:center;justify-content:center;
+  transition:transform .12s;
+}
+.icon-btn:active{transform:scale(0.9);}
+.speak-feedback{margin-top:10px;font-family:var(--font-ui);font-weight:700;font-size:12.5px;min-height:16px;}
+.speak-feedback.ok{color:var(--mint-dark);}
+.speak-feedback.no{color:var(--coral-dark);}
+
+.deck-controls{display:flex;align-items:center;gap:10px;margin-top:16px;}
+.deck-controls .btn{flex:1;}
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+.quiz-progress{font-family:var(--font-ui);font-weight:700;font-size:12px;color:var(--text-soft);margin-bottom:8px;}
+.quiz-card{background:var(--surface);border-radius:var(--r-lg);padding:22px;box-shadow:var(--shadow);text-align:center;}
+.quiz-prompt-hanzi{font-family:var(--font-hanzi);font-weight:700;font-size:clamp(42px,12vw,58px);}
+.quiz-prompt-pinyin{font-family:var(--font-ui);font-weight:600;color:var(--text-soft);font-size:17px;margin-top:4px;}
+.quiz-instructions{font-family:var(--font-ui);font-weight:700;font-size:13px;color:var(--text-soft);margin-bottom:14px;}
+.option-list{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+.option-btn{
+  background:#F9F6FF;border:2px solid transparent;border-radius:var(--r-md);
+  padding:14px 16px;font-family:var(--font-body);font-weight:700;font-size:15px;
+  text-align:left;transition:transform .1s, background .15s, border-color .15s;
+}
+.option-btn:active{transform:scale(0.98);}
+.option-btn.correct{background:var(--mint-tint);border-color:var(--mint-dark);}
+.option-btn.incorrect{background:var(--coral-tint);border-color:var(--coral-dark);animation:shake .35s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+.match-tile{
+  background:#F9F6FF;border:2px solid transparent;border-radius:var(--r-sm);
+  padding:14px 8px;text-align:center;font-weight:700;min-height:56px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:transform .1s, background .15s, border-color .15s, opacity .3s;
+}
+.match-tile.hanzi-tile{font-family:var(--font-hanzi);font-size:19px;}
+.match-tile.selected{border-color:var(--sky-dark);background:var(--sky-tint);}
+.match-tile.matched{background:var(--mint-tint);border-color:var(--mint-dark);opacity:.55;}
+.match-tile.mismatch{animation:shake .35s;background:var(--coral-tint);}
+
+.listen-btn-big{
+  width:96px;height:96px;border-radius:50%;background:var(--sky);border:none;
+  font-size:34px;box-shadow:0 8px 22px rgba(158,210,240,.55);margin:10px auto 20px;
+  display:flex;align-items:center;justify-content:center;transition:transform .15s;
+}
+.listen-btn-big:active{transform:scale(0.92);}
+
+.results-panel{text-align:center;padding:10px 4px;}
+.results-emoji{font-size:60px;animation:popIn .5s;}
+@keyframes popIn{0%{transform:scale(0);}70%{transform:scale(1.15);}100%{transform:scale(1);}}
+.results-score{font-family:var(--font-ui);font-weight:800;font-size:28px;margin-top:6px;}
+.results-stars{font-size:26px;letter-spacing:4px;margin-top:6px;}
+.mastery-summary{font-family:var(--font-ui);font-weight:700;font-size:13.5px;color:var(--text-soft);margin-top:12px;line-height:1.5;}
+.mastery-summary b{color:var(--mint-dark);}
+
+/* ============================================================
+   STROKE MODAL
+   ============================================================ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(61,52,82,.45);
+  display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
+}
+.modal-panel{
+  background:var(--surface);border-radius:var(--r-lg);padding:22px;
+  max-width:420px;width:100%;box-shadow:var(--shadow);text-align:center;
+  max-height:88vh;overflow-y:auto;
+}
+.modal-panel h3{font-size:16px;margin-bottom:2px;}
+.modal-panel .cn-sub{font-family:var(--font-hanzi);color:var(--text-soft);font-size:13px;margin-bottom:14px;}
+.stroke-row{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px;justify-content:center;}
+.stroke-target{width:120px;height:120px;background:#F9F6FF;border-radius:var(--r-md);flex-shrink:0;}
+.modal-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center;}
+.modal-note{font-size:11px;color:var(--text-soft);margin-top:12px;line-height:1.5;font-family:var(--font-body);}
+.close-x{position:sticky;top:0;float:right;background:none;border:none;font-size:20px;color:var(--text-soft);}
+
+/* ============================================================
+   PROGRESS VIEW
+   ============================================================ */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border-radius:var(--r-md);padding:14px 8px;text-align:center;box-shadow:var(--shadow-sm);}
+.stat-card .num{font-family:var(--font-ui);font-weight:800;font-size:22px;color:var(--coral-dark);}
+.stat-card .lbl{font-size:10.5px;color:var(--text-soft);font-weight:700;font-family:var(--font-ui);margin-top:2px;}
+.progress-row{background:var(--surface);border-radius:var(--r-md);padding:16px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.progress-row-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-family:var(--font-ui);font-weight:700;font-size:13.5px;}
+
+/* ============================================================
+   CHAT
+   ============================================================ */
+.chat-note{background:var(--sky-tint);border-radius:var(--r-md);padding:12px 14px;font-size:12px;color:#2d5573;font-family:var(--font-body);margin-bottom:14px;line-height:1.5;}
+.chat-log{display:flex;flex-direction:column;gap:10px;max-height:44vh;overflow-y:auto;padding:4px 2px 10px;}
+.bubble{max-width:78%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.4;}
+.bubble .cn{font-family:var(--font-hanzi);font-weight:700;font-size:15px;}
+.bubble .py{font-family:var(--font-ui);font-size:11px;opacity:.8;margin-top:2px;}
+.bubble-user{align-self:flex-end;background:var(--coral);color:#fff;border-bottom-right-radius:4px;}
+.bubble-bot{align-self:flex-start;background:#F2EEFB;color:var(--text);border-bottom-left-radius:4px;}
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding:10px 2px;}
+.chip{
+  flex-shrink:0;background:#fff;border:2px solid #EFE9F8;border-radius:999px;
+  padding:8px 14px;font-family:var(--font-hanzi);font-size:13px;font-weight:500;color:var(--text);
+}
+.chat-input-row{display:flex;gap:8px;margin-top:6px;}
+.chat-input-row input{
+  flex:1;border:2px solid #EFE9F8;border-radius:999px;padding:12px 16px;
+  font-family:var(--font-body);font-size:14px;background:#fff;color:var(--text);
+}
+.chat-input-row input:focus{border-color:var(--sky-dark);outline:none;}
+.round-btn{width:46px;height:46px;border-radius:50%;border:none;flex-shrink:0;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);}
+.round-btn.mic{background:var(--sky);}
+.round-btn.mic.listening{background:var(--coral);animation:pulse 1s infinite;}
+.round-btn.send{background:var(--coral);color:#fff;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,158,158,.55);}50%{box-shadow:0 0 0 10px rgba(255,158,158,0);}}
+
+@keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+.toast{
+  position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--text);color:#fff;padding:10px 18px;border-radius:999px;
+  font-family:var(--font-ui);font-weight:700;font-size:12.5px;z-index:200;
+  opacity:0;transition:opacity .3s, transform .3s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.empty-note{font-size:12px;color:var(--text-soft);text-align:center;padding:20px;font-family:var(--font-body);}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mascot">🐼</div>
+      <div class="brand-text">
+        <h1>学中文</h1>
+        <p>HSK 1-3 · Học Tiếng Trung</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="streak-badge">🔥 <span id="streak-count">0</span></div>
+      <button class="ring" id="ring-btn" style="--pct:0" title="Tiến độ chung" aria-label="Tiến độ chung">
+        <span class="ring-inner"><span id="ring-pct">0%</span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ HOME ============ -->
+    <section class="view active" id="view-home">
+      <div class="hero">
+        <h2>你好! Nǐ hǎo! 👋</h2>
+        <p>Chọn cấp độ HSK bên dưới. Từ vựng được chia thành từng <strong>nhóm nhỏ</strong> — học xong một nhóm, bạn cần "thuộc" (trả lời đúng ở 2 dạng bài khác nhau) hết các từ trong nhóm đó thì nhóm tiếp theo mới mở khoá.</p>
+        <div class="hero-progress">
+          <div class="bar-track"><div class="bar-fill" id="home-bar-fill" style="width:0%"></div></div>
+          <div class="bar-label"><span id="home-bar-label">Đã thuộc 0/0 từ</span><span id="home-bar-pct">0%</span></div>
+        </div>
+      </div>
+
+      <div class="info-banner">ℹ️ Từ vựng theo chuẩn <b>HSK 3.0 (2021)</b>, tổng hợp từ nguồn mở đã đối chiếu CC‑CEDICT. Phần lớn từ mới hiển thị nghĩa <b>tiếng Anh</b> (nhãn <span class="en-tag">EN</span>) vì dịch tay ~2.200 từ sang tiếng Việt cho chính xác 100% là điều mình chưa thể tự xác minh — riêng các từ giao tiếp quen thuộc (chào hỏi, số đếm, món ăn) vẫn có nghĩa tiếng Việt như bản cũ.</div>
+
+      <div class="section-title">📚 Cấp độ HSK</div>
+      <div class="level-grid" id="level-grid"></div>
+    </section>
+
+    <!-- ============ HSK LEVEL → BATCH PICKER ============ -->
+    <section class="view" id="view-level">
+      <div class="lesson-header">
+        <button class="back-btn" data-nav="home" aria-label="Quay lại">←</button>
+        <div class="lesson-header-title">
+          <h2 id="level-title">HSK 1</h2>
+          <p id="level-sub">0/0 từ đã thuộc</p>
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:2px;">🔢 Số từ mỗi nhóm</div>
+      <div class="batch-size-row" id="batch-size-row"></div>
+      <div class="batch-list" id="batch-list"></div>
+    </section>
+
+    <!-- ============ LESSON (FLASHCARDS) ============ -->
+    <section class="view" id="view-lesson">
+      <div class="lesson-header">
+        <button class="back-btn" id="lesson-back" aria-label="Quay lại">←</button>
+        <div class="lesson-header-title">
+          <h2 id="lesson-title">Nhóm 1</h2>
+          <p id="lesson-counter">1 / 10</p>
+        </div>
+      </div>
+      <div class="dots" id="lesson-dots"></div>
+
+      <div class="flashcard-wrap">
+        <div class="flashcard" id="flashcard">
+          <div class="face face-front">
+            <div class="hanzi-big" id="fc-hanzi">你好</div>
+            <div class="pinyin-big" id="fc-pinyin">nǐ hǎo</div>
+            <span class="tap-hint">chạm để lật thẻ</span>
+          </div>
+          <div class="face face-back">
+            <div class="face-emoji" id="fc-emoji">👋</div>
+            <div class="face-english" id="fc-english">Hello</div>
+            <div class="face-actions">
+              <button class="icon-btn" id="btn-listen" title="Nghe" aria-label="Nghe">🔊</button>
+              <button class="icon-btn" id="btn-stroke" title="Luyện viết" aria-label="Luyện viết">✍️</button>
+              <button class="icon-btn" id="btn-speak" title="Luyện nói" aria-label="Luyện nói">🎤</button>
+            </div>
+            <div class="speak-feedback" id="speak-feedback"></div>
+            <span class="tap-hint">chạm để lật lại</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="deck-controls">
+        <button class="btn btn-outline" id="btn-prev">⬅ Trước</button>
+        <button class="btn btn-primary" id="btn-next">Tiếp ➡</button>
+      </div>
+    </section>
+
+    <!-- ============ QUIZ ============ -->
+    <section class="view" id="view-quiz">
+      <div class="lesson-header">
+        <button class="back-btn" id="quiz-back" aria-label="Quay lại">←</button>
+        <div class="lesson-header-title">
+          <h2 id="quiz-title">Kiểm tra</h2>
+          <p id="quiz-round-label">Vòng 1/3 · Trắc nghiệm</p>
+        </div>
+      </div>
+      <div id="quiz-body"></div>
+    </section>
+
+    <!-- ============ PROGRESS ============ -->
+    <section class="view" id="view-progress">
+      <div class="section-title" style="margin-top:4px;">📈 Tiến độ của bạn</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num" id="stat-words">0</div><div class="lbl">Từ đã thuộc</div></div>
+        <div class="stat-card"><div class="num" id="stat-streak">0</div><div class="lbl">Chuỗi ngày học</div></div>
+        <div class="stat-card"><div class="num" id="stat-quiz">0%</div><div class="lbl">Tỉ lệ hoàn thành</div></div>
+      </div>
+      <div id="progress-list"></div>
+      <button class="btn btn-outline btn-block" id="btn-reset" style="margin-top:10px;color:#B5654F;">Đặt lại toàn bộ tiến độ</button>
+      <p class="empty-note">Tiến độ chỉ được lưu trên trình duyệt này (localStorage) — không cần tài khoản hay máy chủ.</p>
+    </section>
+
+    <!-- ============ CHAT BUDDY ============ -->
+    <section class="view" id="view-chat">
+      <div class="section-title" style="margin-top:4px;">💬 Bạn Trò Chuyện</div>
+      <div class="chat-note">Đây là <strong>bot luyện tập ngoại tuyến</strong> — nó nhận diện các từ khoá đơn giản trong bài học (chào hỏi, số đếm, món ăn), không phải một AI trò chuyện đầy đủ. Nhấn vào gợi ý bên dưới hoặc tự gõ/nói.</div>
+      <div class="chat-log" id="chat-log"></div>
+      <div class="chip-row" id="chip-row"></div>
+      <div class="chat-input-row">
+        <button class="round-btn mic" id="chat-mic" title="Nói" aria-label="Nói">🎤</button>
+        <input type="text" id="chat-input" placeholder="Gõ 你好 hoặc xin chào..." autocomplete="off">
+        <button class="round-btn send" id="chat-send" title="Gửi" aria-label="Gửi">➤</button>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-nav="home"><span class="ic">🏠</span>Trang chủ</button>
+    <button class="nav-btn" data-nav="progress"><span class="ic">📈</span>Tiến độ</button>
+    <button class="nav-btn" data-nav="chat"><span class="ic">💬</span>Trò chuyện</button>
+  </nav>
+</div>
+
+<!-- Stroke order modal -->
+<div class="modal-overlay hidden" id="stroke-modal">
+  <div class="modal-panel">
+    <button class="close-x" id="stroke-close" aria-label="Đóng">✕</button>
+    <h3 id="stroke-word-title">你好</h3>
+    <div class="cn-sub" id="stroke-word-sub">nǐ hǎo · Xin chào</div>
+    <div class="stroke-row" id="stroke-row"></div>
+    <div class="modal-actions">
+      <button class="btn btn-sky" id="stroke-animate">▶ Xem hoạt hoạ</button>
+      <button class="btn btn-mint" id="stroke-quiz">✏️ Kiểm tra tôi</button>
+    </div>
+    <p class="modal-note">Dữ liệu nét chữ lấy từ thư viện mã nguồn mở Hanzi Writer. Nếu các chữ phía trên hiển thị trống, có thể thiết bị này bị chặn kết nối tới CDN dữ liệu nét chữ — phần còn lại của ứng dụng vẫn hoạt động bình thường.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.3/dist/hanzi-writer.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   DATA — Từ vựng HSK 1-3 (chuẩn HSK 3.0 / 2021)
+   Nguồn: tổng hợp mã nguồn mở, đối chiếu CC-CEDICT (xem README).
+   h = hán tự, p = pinyin, m = nghĩa, e = emoji, en = nghĩa đang là tiếng Anh (true/false)
+   ============================================================ */
+const HSK_DATA = {
+  1: [
+    {h:'你好',p:'nǐ hǎo',m:'Xin chào',e:'👋',en:false},
+    {h:'早上好',p:'zǎoshang hǎo',m:'Chào buổi sáng',e:'🌅',en:false},
+    {h:'你好吗',p:'nǐ hǎo ma',m:'Bạn khoẻ không?',e:'❓',en:false},
+    {h:'面条',p:'miàntiáo',m:'Mì',e:'🍜',en:false},
+    {h:'牛肉',p:'niúròu',m:'Thịt bò',e:'🥩',en:false},
+    {h:'蔬菜',p:'shūcài',m:'Rau',e:'🥦',en:false},
+    {h:'的',p:'de',m:'(used after an attribute)',e:'🔤',en:true},
+    {h:'了',p:'le',m:'(completed action marker)',e:'🔤',en:true},
+    {h:'我',p:'wǒ',m:'I; me; my',e:'🙂',en:true},
+    {h:'是',p:'shì',m:'correct; right; true',e:'⚡',en:true},
+    {h:'你',p:'nǐ',m:'you (informal, as opposed to courteous 您)',e:'🙂',en:true},
+    {h:'在',p:'zài',m:'to exist; to be alive',e:'📌',en:true},
+    {h:'不',p:'bù',m:'no; not so',e:'➡️',en:true},
+    {h:'有',p:'yǒu',m:'to have; there is',e:'⚡',en:true},
+    {h:'他',p:'tā',m:'(literary) other',e:'🙂',en:true},
+    {h:'这',p:'zhè',m:'(pronoun) this; these',e:'🙂',en:true},
+    {h:'就',p:'jiù',m:'only; as little as',e:'➡️',en:true},
+    {h:'个',p:'gě',m:'used in 自个儿',e:'🔹',en:true},
+    {h:'和',p:'hé',m:'old variant of 和',e:'🔗',en:true},
+    {h:'人',p:'rén',m:'person; people',e:'📦',en:true},
+    {h:'说',p:'shuì',m:'to persuade',e:'⚡',en:true},
+    {h:'我们',p:'wǒ men',m:'we',e:'🙂',en:true},
+    {h:'要',p:'yāo',m:'(bound form) to demand; to coerce',e:'⚡',en:true},
+    {h:'好',p:'hǎo',m:'good',e:'🎨',en:true},
+    {h:'一',p:'yī',m:'Số một',e:'1️⃣',en:false},
+    {h:'会',p:'huì',m:'meeting; gathering',e:'⚡',en:true},
+    {h:'也',p:'Yě',m:'surname Ye',e:'➡️',en:true},
+    {h:'都',p:'Dū',m:'surname Du',e:'➡️',en:true},
+    {h:'对',p:'duì',m:'to face',e:'📌',en:true},
+    {h:'到',p:'dào',m:'to reach; to arrive',e:'⚡',en:true},
+    {h:'上',p:'shǎng',m:'used in 上声',e:'↗️',en:true},
+    {h:'来',p:'lái',m:'to come',e:'⚡',en:true},
+    {h:'很',p:'hěn',m:'very',e:'➡️',en:true},
+    {h:'还',p:'Huán',m:'surname Huan',e:'➡️',en:true},
+    {h:'去',p:'qù',m:'to go',e:'⚡',en:true},
+    {h:'她',p:'tā',m:'she',e:'🙂',en:true},
+    {h:'着',p:'zhāo',m:'trick',e:'🔤',en:true},
+    {h:'想',p:'xiǎng',m:'to think (about)',e:'⚡',en:true},
+    {h:'给',p:'gěi',m:'to',e:'📌',en:true},
+    {h:'没有',p:'méi yǒu',m:'hasn\'t',e:'⚡',en:true},
+    {h:'能',p:'Néng',m:'surname Neng',e:'⚡',en:true},
+    {h:'那',p:'Nā',m:'surname Na',e:'🙂',en:true},
+    {h:'他们',p:'tā men',m:'they',e:'🙂',en:true},
+    {h:'看',p:'kān',m:'to watch',e:'⚡',en:true},
+    {h:'做',p:'zuò',m:'to make; to produce',e:'⚡',en:true},
+    {h:'什么',p:'shén me',m:'what?',e:'🙂',en:true},
+    {h:'吧',p:'bā',m:'(onom.) bang',e:'🔤',en:true},
+    {h:'点',p:'diǎn',m:'dot',e:'🔹',en:true},
+    {h:'过',p:'Guō',m:'surname Guo',e:'🔤',en:true},
+    {h:'没',p:'méi',m:'(negative prefix for verbs) have not; not',e:'➡️',en:true},
+    {h:'大',p:'dà',m:'eldest (as in 姐)',e:'🎨',en:true},
+    {h:'从',p:'cóng',m:'variant of 从',e:'📌',en:true},
+    {h:'下',p:'xià',m:'down',e:'⚡',en:true},
+    {h:'中',p:'Zhōng',m:'China',e:'↗️',en:true},
+    {h:'里',p:'lǐ',m:'variant of 里',e:'↗️',en:true},
+    {h:'真',p:'zhēn',m:'real',e:'➡️',en:true},
+    {h:'现在',p:'xiàn zài',m:'now',e:'⏰',en:true},
+    {h:'年',p:'Nián',m:'surname Nian',e:'🔹',en:true},
+    {h:'用',p:'yòng',m:'hence',e:'⚡',en:true},
+    {h:'多',p:'duō',m:'many; much',e:'🎨',en:true},
+    {h:'两',p:'liǎng',m:'two',e:'🔢',en:true},
+    {h:'等',p:'děng',m:'rank',e:'⚡',en:true},
+    {h:'吗',p:'má',m:'(coll.) what?',e:'🔤',en:true},
+    {h:'天',p:'tiān',m:'day',e:'🔹',en:true},
+    {h:'出',p:'chū',m:'to rise',e:'⚡',en:true},
+    {h:'太',p:'tài',m:'very',e:'➡️',en:true},
+    {h:'最',p:'zuì',m:'variant of 最',e:'➡️',en:true},
+    {h:'再',p:'zài',m:'second; another',e:'➡️',en:true},
+    {h:'呢',p:'ne',m:'particle indicating strong affirmation',e:'🔤',en:true},
+    {h:'次',p:'cì',m:'sub-',e:'🔹',en:true},
+    {h:'小',p:'xiǎo',m:'few',e:'🎨',en:true},
+    {h:'知道',p:'zhī dào',m:'also pr. [zhī dao]',e:'⚡',en:true},
+    {h:'时候',p:'shí hou',m:'time',e:'📦',en:true},
+    {h:'走',p:'zǒu',m:'from',e:'⚡',en:true},
+    {h:'工作',p:'gōng zuò',m:'job',e:'⚡',en:true},
+    {h:'事',p:'shì',m:'item',e:'📦',en:true},
+    {h:'后',p:'Hòu',m:'surname Hou',e:'↗️',en:true},
+    {h:'家',p:'jiā',m:'used in 家伙 and 家俱',e:'📦',en:true},
+    {h:'你们',p:'nǐ men',m:'you (plural)',e:'🙂',en:true},
+    {h:'前',p:'qián',m:'ago',e:'↗️',en:true},
+    {h:'时间',p:'shí jiān',m:'time',e:'📦',en:true},
+    {h:'怎么',p:'zěn me',m:'how?',e:'🙂',en:true},
+    {h:'爱',p:'ài',m:'affection',e:'⚡',en:true},
+    {h:'地',p:'de',m:'-ly',e:'🔤',en:true},
+    {h:'这些',p:'zhè xiē',m:'these',e:'🙂',en:true},
+    {h:'跟',p:'gēn',m:'to',e:'📌',en:true},
+    {h:'喜欢',p:'xǐ huan',m:'to like; to be fond of',e:'⚡',en:true},
+    {h:'吃',p:'chī',m:'to absorb',e:'⚡',en:true},
+    {h:'谁',p:'shéi',m:'who',e:'🙂',en:true},
+    {h:'新',p:'Xīn',m:'surname Xin',e:'🎨',en:true},
+    {h:'找',p:'zhǎo',m:'to find',e:'⚡',en:true},
+    {h:'打',p:'dá',m:'dozen (loanword)',e:'⚡',en:true},
+    {h:'还有',p:'hái yǒu',m:'also',e:'⚡',en:true},
+    {h:'快',p:'kuài',m:'rate',e:'🎨',en:true},
+    {h:'比',p:'Bǐ',m:'Belgium',e:'📌',en:true},
+    {h:'今天',p:'jīn tiān',m:'now',e:'⏰',en:true},
+    {h:'话',p:'huà',m:'talk',e:'📦',en:true},
+    {h:'还是',p:'hái shi',m:'or',e:'🔗',en:true},
+    {h:'觉得',p:'jué de',m:'to feel (uncomfortable etc)',e:'⚡',en:true},
+    {h:'月',p:'yuè',m:'moon',e:'📦',en:true},
+    {h:'看到',p:'kàn dào',m:'to see',e:'⚡',en:true},
+    {h:'起来',p:'qǐ lai',m:'to get up',e:'⚡',en:true},
+    {h:'一起',p:'yī qǐ',m:'with',e:'📍',en:true},
+    {h:'起',p:'qǐ',m:'to rise',e:'⚡',en:true},
+    {h:'几',p:'jī',m:'small table',e:'🔢',en:true},
+    {h:'见',p:'jiàn',m:'view',e:'⚡',en:true},
+    {h:'车',p:'Chē',m:'surname Che',e:'📦',en:true},
+    {h:'一些',p:'yī xiē',m:'some',e:'🔢',en:true},
+    {h:'找到',p:'zhǎo dào',m:'to find',e:'⚡',en:true},
+    {h:'手',p:'shǒu',m:'hand',e:'📦',en:true},
+    {h:'听',p:'yǐn',m:'smile (archaic)',e:'⚡',en:true},
+    {h:'非常',p:'fēi cháng',m:'very; really',e:'➡️',en:true},
+    {h:'开',p:'kāi',m:'to boil',e:'⚡',en:true},
+    {h:'叫',p:'jiào',m:'to ask',e:'⚡',en:true},
+    {h:'孩子',p:'hái zi',m:'child',e:'📦',en:true},
+    {h:'这里',p:'zhè lǐ',m:'variant of 这里',e:'🙂',en:true},
+    {h:'别',p:'Bié',m:'surname Bie',e:'➡️',en:true},
+    {h:'请',p:'qǐng',m:'Xin mời',e:'🙏',en:false},
+    {h:'钱',p:'Qián',m:'surname Qian',e:'📦',en:true},
+    {h:'本',p:'běn',m:'root',e:'🙂',en:true},
+    {h:'回',p:'huí',m:'time',e:'⚡',en:true},
+    {h:'东西',p:'dōng xī',m:'east and west',e:'📦',en:true},
+    {h:'三',p:'sān',m:'Số ba',e:'3️⃣',en:false},
+    {h:'一样',p:'yī yàng',m:'same',e:'🔤',en:true},
+    {h:'买',p:'mǎi',m:'to buy',e:'⚡',en:true},
+    {h:'重要',p:'zhòng yào',m:'major',e:'🎨',en:true},
+    {h:'问',p:'wèn',m:'to ask; to inquire',e:'⚡',en:true},
+    {h:'告诉',p:'gào sù',m:'to press charges; to file a complaint',e:'⚡',en:true},
+    {h:'出来',p:'chū lái',m:'to arise',e:'⚡',en:true},
+    {h:'地方',p:'dì fāng',m:'local',e:'📦',en:true},
+    {h:'最后',p:'zuì hòu',m:'last',e:'↗️',en:true},
+    {h:'老',p:'lǎo',m:'very',e:'🎨',en:true},
+    {h:'岁',p:'suì',m:'years old',e:'🔹',en:true},
+    {h:'行',p:'háng',m:'row',e:'⚡',en:true},
+    {h:'号',p:'háo',m:'cry',e:'🔹',en:true},
+    {h:'放',p:'fàng',m:'to put',e:'⚡',en:true},
+    {h:'朋友',p:'péng you',m:'friend',e:'📦',en:true},
+    {h:'住',p:'zhù',m:'to live',e:'⚡',en:true},
+    {h:'拿',p:'ná',m:'old variant of 拿',e:'⚡',en:true},
+    {h:'高',p:'Gāo',m:'surname Gao',e:'🎨',en:true},
+    {h:'正',p:'zhēng',m:'first month of the lunar year',e:'➡️',en:true},
+    {h:'先',p:'xiān',m:'early',e:'➡️',en:true},
+    {h:'得到',p:'dé dào',m:'to get',e:'⚡',en:true},
+    {h:'那些',p:'nà xiē',m:'those',e:'🙂',en:true},
+    {h:'准备',p:'zhǔn bèi',m:'to intend',e:'⚡',en:true},
+    {h:'水',p:'shuǐ',m:'Nước',e:'💧',en:false},
+    {h:'进',p:'jìn',m:'to go in',e:'⚡',en:true},
+    {h:'写',p:'xiě',m:'to write',e:'⚡',en:true},
+    {h:'国家',p:'guó jiā',m:'country; nation; state',e:'📦',en:true},
+    {h:'您',p:'nín',m:'you (courteous, as opposed to informal 你)',e:'🙂',en:true},
+    {h:'电话',p:'diàn huà',m:'telephone',e:'📦',en:true},
+    {h:'女',p:'nǚ',m:'woman',e:'📝',en:true},
+    {h:'送',p:'sòng',m:'to see (sb) off',e:'⚡',en:true},
+    {h:'分',p:'fēn',m:'fraction',e:'⏰',en:true},
+    {h:'笑',p:'xiào',m:'old variant of 笑',e:'⚡',en:true},
+    {h:'女人',p:'nǚ rén',m:'woman',e:'📦',en:true},
+    {h:'小时',p:'xiǎo shí',m:'hour',e:'📦',en:true},
+    {h:'有些',p:'yǒu xiē',m:'some',e:'🙂',en:true},
+    {h:'帮',p:'bāng',m:'old variant of 帮',e:'⚡',en:true},
+    {h:'日',p:'Rì',m:'abbr. for 本, Japan',e:'⏰',en:true},
+    {h:'别人',p:'bié ren',m:'other people; others; other person',e:'🙂',en:true},
+    {h:'站',p:'zhàn',m:'station',e:'⚡',en:true},
+    {h:'路',p:'Lù',m:'surname Lu',e:'📦',en:true},
+    {h:'男人',p:'nán rén',m:'men',e:'📦',en:true},
+    {h:'正在',p:'zhèng zài',m:'just at (that time)',e:'➡️',en:true},
+    {h:'门',p:'Mén',m:'surname Men',e:'📦',en:true},
+    {h:'喝',p:'hē',m:'to drink',e:'⚡',en:true},
+    {h:'穿',p:'chuān',m:'to wear',e:'⚡',en:true},
+    {h:'学校',p:'xué xiào',m:'school',e:'📦',en:true},
+    {h:'花',p:'Huā',m:'surname Hua',e:'⚡',en:true},
+    {h:'坐',p:'Zuò',m:'surname Zuo',e:'⚡',en:true},
+    {h:'早',p:'zǎo',m:'early',e:'🎨',en:true},
+    {h:'们',p:'men',m:'plural marker for pronouns, and nouns referring to indivi…',e:'📝',en:true},
+    {h:'身上',p:'shēn shang',m:'among',e:'📍',en:true},
+    {h:'干',p:'gān',m:'old variant of 干',e:'⚡',en:true},
+    {h:'认识',p:'rèn shi',m:'to know',e:'⚡',en:true},
+    {h:'睡',p:'shuì',m:'to sleep',e:'⚡',en:true},
+    {h:'明天',p:'míng tiān',m:'tomorrow',e:'⏰',en:true},
+    {h:'回来',p:'huí lai',m:'to return; to come back',e:'⚡',en:true},
+    {h:'四',p:'sì',m:'Số bốn',e:'4️⃣',en:false},
+    {h:'块',p:'kuài',m:'lump; chunk; piece',e:'🔹',en:true},
+    {h:'外',p:'wài',m:'outside',e:'↗️',en:true},
+    {h:'晚上',p:'wǎn shang',m:'night',e:'⏰',en:true},
+    {h:'妈',p:'mā',m:'ma',e:'📦',en:true},
+    {h:'球',p:'qiú',m:'ball',e:'📦',en:true},
+    {h:'谢谢',p:'xièxie',m:'Cảm ơn',e:'🙏',en:false},
+    {h:'学',p:'xué',m:'-ology',e:'⚡',en:true},
+    {h:'多少',p:'duō shǎo',m:'number',e:'🙂',en:true},
+    {h:'第二',p:'dì èr',m:'next',e:'🔢',en:true},
+    {h:'妈妈',p:'mā ma',m:'mama',e:'📦',en:true},
+    {h:'错',p:'Cuò',m:'surname Cuo',e:'⚡',en:true},
+    {h:'少',p:'shǎo',m:'few',e:'🎨',en:true},
+    {h:'别的',p:'bié de',m:'else',e:'🙂',en:true},
+    {h:'难',p:'nán',m:'problem',e:'🎨',en:true},
+    {h:'电影',p:'diàn yǐng',m:'movie; film',e:'📦',en:true},
+    {h:'间',p:'jiān',m:'room',e:'🔹',en:true},
+    {h:'哪',p:'nǎ',m:'how',e:'🙂',en:true},
+    {h:'跑',p:'páo',m:'(of an animal) to paw (the ground)',e:'⚡',en:true},
+    {h:'回家',p:'huí jiā',m:'to return home',e:'⚡',en:true},
+    {h:'昨天',p:'zuó tiān',m:'yesterday',e:'⏰',en:true},
+    {h:'晚',p:'wǎn',m:'late',e:'⏰',en:true},
+    {h:'书',p:'Shū',m:'abbr. for 书经',e:'📦',en:true},
+    {h:'五',p:'wǔ',m:'Số năm',e:'5️⃣',en:false},
+    {h:'先生',p:'xiān sheng',m:'teacher',e:'📦',en:true},
+    {h:'男',p:'nán',m:'male',e:'📝',en:true},
+    {h:'动',p:'dòng',m:'to touch',e:'⚡',en:true},
+    {h:'医院',p:'yī yuàn',m:'hospital',e:'📦',en:true},
+    {h:'重',p:'chóng',m:'re-',e:'🎨',en:true},
+    {h:'真的',p:'zhēn de',m:'really, truly, indeed',e:'➡️',en:true},
+    {h:'子',p:'zǐ',m:'son',e:'🔹',en:true},
+    {h:'远',p:'yuǎn',m:'far',e:'🎨',en:true},
+    {h:'口',p:'kǒu',m:'mouth',e:'🔹',en:true},
+    {h:'学生',p:'xué sheng',m:'student',e:'📦',en:true},
+    {h:'二',p:'èr',m:'Số hai',e:'2️⃣',en:false},
+    {h:'儿子',p:'ér zi',m:'son',e:'📦',en:true},
+    {h:'明白',p:'míng bai',m:'clear',e:'⚡',en:true},
+    {h:'杯',p:'bēi',m:'cup',e:'🔹',en:true},
+    {h:'记得',p:'jì de',m:'to remember',e:'⚡',en:true},
+    {h:'歌',p:'gē',m:'song',e:'📦',en:true},
+    {h:'半',p:'bàn',m:'half',e:'🔢',en:true},
+    {h:'中国',p:'Zhōng guó',m:'China',e:'📍',en:true},
+    {h:'身体',p:'shēn tǐ',m:'the body',e:'📦',en:true},
+    {h:'元',p:'Yuán',m:'surname Yuan',e:'🔹',en:true},
+    {h:'哪里',p:'nǎ lǐ',m:'where?',e:'🙂',en:true},
+    {h:'包',p:'Bāo',m:'surname Bao',e:'⚡',en:true},
+    {h:'楼',p:'Lóu',m:'surname Lou',e:'📦',en:true},
+    {h:'那里',p:'nà li',m:'there; that place',e:'🙂',en:true},
+    {h:'电视',p:'diàn shì',m:'television; TV',e:'📦',en:true},
+    {h:'飞',p:'fēi',m:'to fly',e:'⚡',en:true},
+    {h:'介绍',p:'jiè shào',m:'introduction',e:'⚡',en:true},
+    {h:'下午',p:'xià wǔ',m:'p.m.',e:'⏰',en:true},
+    {h:'出去',p:'chū qù',m:'to go out',e:'⚡',en:true},
+    {h:'学习',p:'xué xí',m:'to learn',e:'⚡',en:true},
+    {h:'老师',p:'lǎo shī',m:'teacher',e:'📦',en:true},
+    {h:'六',p:'liù',m:'Số sáu',e:'6️⃣',en:false},
+    {h:'唱',p:'chàng',m:'to sing',e:'⚡',en:true},
+    {h:'大学',p:'Dà xué',m:'the Great Learning, one of the Four Books 四书 in Confucian…',e:'📦',en:true},
+    {h:'病',p:'bìng',m:'defect',e:'📦',en:true},
+    {h:'医生',p:'yī shēng',m:'doctor',e:'📦',en:true},
+    {h:'名字',p:'míng zi',m:'name (of a person or thing)',e:'📦',en:true},
+    {h:'她们',p:'tā men',m:'they',e:'🙂',en:true},
+    {h:'马上',p:'mǎ shàng',m:'at once',e:'➡️',en:true},
+    {h:'今年',p:'jīn nián',m:'this year',e:'⏰',en:true},
+    {h:'手机',p:'shǒu jī',m:'cell phone',e:'📦',en:true},
+    {h:'忙',p:'máng',m:'busy',e:'⚡',en:true},
+    {h:'十',p:'shí',m:'Số mười',e:'🔟',en:false},
+    {h:'看见',p:'kàn jiàn',m:'to see',e:'⚡',en:true},
+    {h:'听到',p:'tīng dào',m:'to hear',e:'⚡',en:true},
+    {h:'女儿',p:'nǚ ér',m:'daughter',e:'📦',en:true},
+    {h:'说话',p:'shuō huà',m:'talk',e:'⚡',en:true},
+    {h:'汽车',p:'qì chē',m:'car',e:'📦',en:true},
+    {h:'爸爸',p:'bà ba',m:'(coll.) father; dad',e:'📦',en:true},
+    {h:'字',p:'zì',m:'word',e:'📦',en:true},
+    {h:'高兴',p:'gāo xìng',m:'glad',e:'🎨',en:true},
+    {h:'白',p:'Bái',m:'surname Bai',e:'🎨',en:true},
+    {h:'去年',p:'qù nián',m:'last year',e:'⏰',en:true},
+    {h:'热',p:'rè',m:'heat',e:'🎨',en:true},
+    {h:'试',p:'shì',m:'test',e:'⚡',en:true},
+    {h:'来到',p:'lái dào',m:'to arrive; to come',e:'⚡',en:true},
+    {h:'睡觉',p:'shuì jiào',m:'to sleep',e:'⚡',en:true},
+    {h:'电脑',p:'diàn nǎo',m:'computer',e:'📦',en:true},
+    {h:'票',p:'piào',m:'ticket',e:'📦',en:true},
+    {h:'西',p:'Xī',m:'Spanish',e:'↗️',en:true},
+    {h:'床',p:'chuáng',m:'bed',e:'📦',en:true},
+    {h:'第',p:'dì',m:'(literary) only; just',e:'🔢',en:true},
+    {h:'回到',p:'huí dào',m:'to return to',e:'⚡',en:true},
+    {h:'差',p:'chā',m:'difference; discrepancy',e:'🎨',en:true},
+    {h:'家里',p:'jiā lǐ',m:'home',e:'📍',en:true},
+    {h:'教',p:'Jiào',m:'surname Jiao',e:'⚡',en:true},
+    {h:'不用',p:'bù yòng',m:'need not',e:'➡️',en:true},
+    {h:'读',p:'dòu',m:'comma',e:'⚡',en:true},
+    {h:'忘',p:'wàng',m:'to forget',e:'⚡',en:true},
+    {h:'认真',p:'rèn zhēn',m:'earnest',e:'🎨',en:true},
+    {h:'电',p:'diàn',m:'lightning',e:'📦',en:true},
+    {h:'房子',p:'fáng zi',m:'room',e:'📦',en:true},
+    {h:'冷',p:'Lěng',m:'surname Leng',e:'🎨',en:true},
+    {h:'山',p:'Shān',m:'surname Shan',e:'📦',en:true},
+    {h:'常',p:'Cháng',m:'surname Chang',e:'➡️',en:true},
+    {h:'飞机',p:'fēi jī',m:'airplane',e:'📦',en:true},
+    {h:'早上',p:'zǎo shang',m:'early morning',e:'⏰',en:true},
+    {h:'回答',p:'huí dá',m:'reply; answer',e:'⚡',en:true},
+    {h:'记',p:'jì',m:'mark',e:'⚡',en:true},
+    {h:'关',p:'Guān',m:'surname Guan',e:'⚡',en:true},
+    {h:'哥',p:'gē',m:'elder brother',e:'📦',en:true},
+    {h:'爸',p:'bà',m:'pa',e:'📦',en:true},
+    {h:'风',p:'fēng',m:'wind',e:'📦',en:true},
+    {h:'回去',p:'huí qu',m:'to return',e:'⚡',en:true},
+    {h:'累',p:'lěi',m:'repeated',e:'🎨',en:true},
+    {h:'打开',p:'dǎ kāi',m:'to open',e:'⚡',en:true},
+    {h:'病人',p:'bìng rén',m:'patient',e:'📦',en:true},
+    {h:'肉',p:'ròu',m:'meat',e:'📦',en:true},
+    {h:'打电话',p:'dǎ diàn huà',m:'to make a telephone call',e:'⚡',en:true},
+    {h:'休息',p:'xiū xi',m:'rest',e:'⚡',en:true},
+    {h:'班',p:'Bān',m:'surname Ban',e:'📦',en:true},
+    {h:'坏',p:'huài',m:'bad',e:'🎨',en:true},
+    {h:'一边',p:'yī biān',m:'one side',e:'➡️',en:true},
+    {h:'洗',p:'xǐ',m:'to wash; to bathe',e:'⚡',en:true},
+    {h:'有的',p:'yǒu de',m:'some (exist)',e:'🙂',en:true},
+    {h:'毛',p:'Máo',m:'surname Mao',e:'👤',en:true},
+    {h:'忘记',p:'wàng jì',m:'to forget',e:'⚡',en:true},
+    {h:'房间',p:'fáng jiān',m:'room',e:'📦',en:true},
+    {h:'八',p:'bā',m:'Số tám',e:'8️⃣',en:false},
+    {h:'左',p:'Zuǒ',m:'surname Zuo',e:'↗️',en:true},
+    {h:'吃饭',p:'chī fàn',m:'to eat',e:'⚡',en:true},
+    {h:'动作',p:'dòng zuò',m:'to act; to move',e:'📦',en:true},
+    {h:'七',p:'qī',m:'Số bảy',e:'7️⃣',en:false},
+    {h:'菜',p:'cài',m:'poor',e:'📦',en:true},
+    {h:'衣服',p:'yī fu',m:'clothes',e:'📦',en:true},
+    {h:'饿',p:'è',m:'hungry',e:'⚡',en:true},
+    {h:'树',p:'shù',m:'tree',e:'📦',en:true},
+    {h:'右',p:'yòu',m:'(bound form) (old) west',e:'↗️',en:true},
+    {h:'上班',p:'shàng bān',m:'to go to work',e:'⚡',en:true},
+    {h:'生日',p:'shēng rì',m:'birthday',e:'📦',en:true},
+    {h:'东',p:'Dōng',m:'surname Dong',e:'↗️',en:true},
+    {h:'姐姐',p:'jiě jie',m:'older sister',e:'📦',en:true},
+    {h:'课',p:'kè',m:'tax',e:'📦',en:true},
+    {h:'国',p:'Guó',m:'surname Guo',e:'📦',en:true},
+    {h:'饭',p:'fàn',m:'meal',e:'📦',en:true},
+    {h:'一半',p:'yī bàn',m:'half',e:'🔢',en:true},
+    {h:'家人',p:'jiā rén',m:'family member',e:'📦',en:true},
+    {h:'有时',p:'yǒu shí',m:'sometimes',e:'➡️',en:true},
+    {h:'小姐',p:'xiǎo jie',m:'miss',e:'📦',en:true},
+    {h:'对不起',p:'duìbuqǐ',m:'Xin lỗi',e:'🙇',en:false},
+    {h:'进去',p:'jìn qù',m:'to go in',e:'⚡',en:true},
+    {h:'哥哥',p:'gē ge',m:'older brother',e:'📦',en:true},
+    {h:'没什么',p:'méi shén me',m:'nothing',e:'⚡',en:true},
+    {h:'路上',p:'lù shang',m:'on the road',e:'📍',en:true},
+    {h:'天气',p:'tiān qì',m:'weather',e:'📦',en:true},
+    {h:'最好',p:'zuì hǎo',m:'best',e:'➡️',en:true},
+    {h:'南',p:'Nán',m:'surname Nan',e:'↗️',en:true},
+    {h:'考试',p:'kǎo shì',m:'exam',e:'⚡',en:true},
+    {h:'有时候',p:'yǒu shí hou',m:'sometimes',e:'➡️',en:true},
+    {h:'慢',p:'màn',m:'slow',e:'🎨',en:true},
+    {h:'旁边',p:'páng biān',m:'side; adjacent place',e:'↗️',en:true},
+    {h:'同学',p:'tóng xué',m:'classmate',e:'📦',en:true},
+    {h:'北',p:'běi',m:'north',e:'↗️',en:true},
+    {h:'帮忙',p:'bāng máng',m:'to help',e:'⚡',en:true},
+    {h:'进来',p:'jìn lái',m:'to come in',e:'⚡',en:true},
+    {h:'见面',p:'jiàn miàn',m:'to meet; to see each other',e:'⚡',en:true},
+    {h:'好看',p:'hǎo kàn',m:'humiliated',e:'🎨',en:true},
+    {h:'中间',p:'zhōng jiān',m:'the middle; the inside',e:'↗️',en:true},
+    {h:'女生',p:'nǚ shēng',m:'girl',e:'📦',en:true},
+    {h:'茶',p:'chá',m:'Trà',e:'🍵',en:false},
+    {h:'地点',p:'dì diǎn',m:'site',e:'📦',en:true},
+    {h:'雨',p:'yǔ',m:'rain',e:'📦',en:true},
+    {h:'星期',p:'xīng qī',m:'week',e:'📦',en:true},
+    {h:'车上',p:'chē shàng',m:'Car',e:'📍',en:true},
+    {h:'考',p:'kǎo',m:'to hit',e:'⚡',en:true},
+    {h:'九',p:'jiǔ',m:'Số chín',e:'9️⃣',en:false},
+    {h:'妹妹',p:'mèi mei',m:'young woman',e:'📦',en:true},
+    {h:'生气',p:'shēng qì',m:'angry',e:'🎨',en:true},
+    {h:'地上',p:'dì shang',m:'on the floor',e:'📍',en:true},
+    {h:'上午',p:'shàng wǔ',m:'morning',e:'⏰',en:true},
+    {h:'一会儿',p:'yī huì r',m:'a while',e:'🔢',en:true},
+    {h:'贵',p:'guì',m:'noble',e:'🎨',en:true},
+    {h:'记住',p:'jì zhu',m:'to remember',e:'⚡',en:true},
+    {h:'下次',p:'xià cì',m:'next time',e:'⏰',en:true},
+    {h:'知识',p:'zhī shi',m:'knowledge',e:'📦',en:true},
+    {h:'机场',p:'jī chǎng',m:'airport; airfield',e:'📦',en:true},
+    {h:'学院',p:'xué yuàn',m:'school',e:'📦',en:true},
+    {h:'老人',p:'lǎo rén',m:'the elderly',e:'📦',en:true},
+    {h:'页',p:'xié',m:'head',e:'🔹',en:true},
+    {h:'工人',p:'gōng rén',m:'worker',e:'📦',en:true},
+    {h:'那边',p:'nà bian',m:'yonder',e:'🙂',en:true},
+    {h:'弟弟',p:'dì di',m:'younger brother',e:'📦',en:true},
+    {h:'干净',p:'gān jìng',m:'neat',e:'🎨',en:true},
+    {h:'在家',p:'zài jiā',m:'to be at home',e:'⚡',en:true},
+    {h:'百',p:'Bǎi',m:'surname Bai',e:'🔢',en:true},
+    {h:'网上',p:'wǎng shàng',m:'online',e:'📍',en:true},
+    {h:'好吃',p:'hǎo chī',m:'tasty',e:'🎨',en:true},
+    {h:'明年',p:'míng nián',m:'next year',e:'⏰',en:true},
+    {h:'再见',p:'zàijiàn',m:'Tạm biệt',e:'👋',en:false},
+    {h:'妹',p:'mèi',m:'younger sister',e:'📦',en:true},
+    {h:'这儿',p:'zhè r',m:'here',e:'🙂',en:true},
+    {h:'哪儿',p:'nǎ r',m:'where?',e:'🙂',en:true},
+    {h:'不对',p:'bù duì',m:'wrong',e:'🎨',en:true},
+    {h:'中午',p:'zhōng wǔ',m:'noon',e:'⏰',en:true},
+    {h:'起床',p:'qǐ chuáng',m:'to get up',e:'⚡',en:true},
+    {h:'是不是',p:'shì bù shì',m:'yes or no',e:'⚡',en:true},
+    {h:'开车',p:'kāi chē',m:'to drive a car',e:'⚡',en:true},
+    {h:'干什么',p:'gàn shén me',m:'what\'s he up to?',e:'⚡',en:true},
+    {h:'奶',p:'nǎi',m:'milk',e:'📦',en:true},
+    {h:'门口',p:'mén kǒu',m:'gate',e:'📍',en:true},
+    {h:'常常',p:'cháng cháng',m:'often',e:'➡️',en:true},
+    {h:'这边',p:'zhè biān',m:'here',e:'🙂',en:true},
+    {h:'男生',p:'nán shēng',m:'boy',e:'📦',en:true},
+    {h:'火车',p:'huǒ chē',m:'train',e:'📦',en:true},
+    {h:'奶奶',p:'nǎi nai',m:'breasts',e:'📦',en:true},
+    {h:'上次',p:'shàng cì',m:'last time',e:'⏰',en:true},
+    {h:'唱歌',p:'chàng gē',m:'to sing a song',e:'⚡',en:true},
+    {h:'右边',p:'yòu bian',m:'right side',e:'↗️',en:true},
+    {h:'上学',p:'shàng xué',m:'to go to school',e:'⚡',en:true},
+    {h:'牛奶',p:'niú nǎi',m:'cow\'s milk',e:'📦',en:true},
+    {h:'女朋友',p:'nǚ péng you',m:'girlfriend',e:'📦',en:true},
+    {h:'上课',p:'shàng kè',m:'to go to class',e:'⚡',en:true},
+    {h:'爷爷',p:'yé ye',m:'paternal grandfather',e:'📦',en:true},
+    {h:'听见',p:'tīng jiàn',m:'to hear',e:'⚡',en:true},
+    {h:'新年',p:'xīn nián',m:'New Year',e:'⏰',en:true},
+    {h:'男朋友',p:'nán péng you',m:'boyfriend',e:'📦',en:true},
+    {h:'下班',p:'xià bān',m:'to finish work',e:'⚡',en:true},
+    {h:'水果',p:'shuǐ guǒ',m:'fruit',e:'📦',en:true},
+    {h:'读书',p:'dú shū',m:'to study',e:'⚡',en:true},
+    {h:'那儿',p:'nà r',m:'there',e:'🙂',en:true},
+    {h:'商店',p:'shāng diàn',m:'store; shop',e:'📦',en:true},
+    {h:'鸡蛋',p:'jīdàn',m:'Trứng',e:'🥚',en:false},
+    {h:'没关系',p:'méi guānxi',m:'Không sao đâu',e:'🤝',en:false},
+    {h:'地图',p:'dì tú',m:'map',e:'📦',en:true},
+    {h:'姐',p:'jiě',m:'older sister',e:'📦',en:true},
+    {h:'坐下',p:'zuò xia',m:'to sit down',e:'⚡',en:true},
+    {h:'零',p:'líng',m:'Số không',e:'0️⃣',en:false},
+    {h:'桌子',p:'zhuō zi',m:'desk',e:'📦',en:true},
+    {h:'白天',p:'bái tiān',m:'day',e:'⏰',en:true},
+    {h:'请问',p:'qǐng wèn',m:'Excuse me, may I ask...?',e:'⚡',en:true},
+    {h:'哪些',p:'nǎ xiē',m:'who?',e:'🙂',en:true},
+    {h:'晚饭',p:'wǎn fàn',m:'dinner',e:'📦',en:true},
+    {h:'小学',p:'xiǎo xué',m:'elementary school; primary school',e:'📦',en:true},
+    {h:'图书馆',p:'tú shū guǎn',m:'library',e:'📦',en:true},
+    {h:'开玩笑',p:'kāi wán xiào',m:'to joke',e:'⚡',en:true},
+    {h:'国外',p:'guó wài',m:'abroad',e:'📍',en:true},
+    {h:'日期',p:'rì qī',m:'date',e:'📦',en:true},
+    {h:'饭店',p:'fàn diàn',m:'hotel',e:'📦',en:true},
+    {h:'中学',p:'zhōng xué',m:'middle school',e:'📦',en:true},
+    {h:'上网',p:'shàng wǎng',m:'to go online',e:'⚡',en:true},
+    {h:'商场',p:'shāng chǎng',m:'emporium',e:'📦',en:true},
+    {h:'楼下',p:'lóu xià',m:'downstairs',e:'📍',en:true},
+    {h:'面包',p:'miànbāo',m:'Bánh mì',e:'🍞',en:false},
+    {h:'外国',p:'wài guó',m:'foreign (country)',e:'📦',en:true},
+    {h:'生病',p:'shēng bìng',m:'to fall ill',e:'⚡',en:true},
+    {h:'好听',p:'hǎo tīng',m:'pleasant to hear',e:'🎨',en:true},
+    {h:'开会',p:'kāi huì',m:'to hold a meeting',e:'⚡',en:true},
+    {h:'钱包',p:'qián bāo',m:'purse',e:'📦',en:true},
+    {h:'大学生',p:'dà xué shēng',m:'college student',e:'📦',en:true},
+    {h:'车站',p:'chē zhàn',m:'bus stop',e:'📦',en:true},
+    {h:'走路',p:'zǒu lù',m:'to walk',e:'⚡',en:true},
+    {h:'小朋友',p:'xiǎo péng yǒu',m:'child',e:'📦',en:true},
+    {h:'左边',p:'zuǒ bian',m:'left',e:'↗️',en:true},
+    {h:'北京',p:'Běi jīng',m:'Beijing, capital of the People\'s Republic of China',e:'📍',en:true},
+    {h:'有用',p:'yǒu yòng',m:'useful',e:'🎨',en:true},
+    {h:'爱好',p:'ài hào',m:'interest; hobby',e:'📦',en:true},
+    {h:'不大',p:'bù dà',m:'not too',e:'➡️',en:true},
+    {h:'午饭',p:'wǔ fàn',m:'lunch',e:'📦',en:true},
+    {h:'上车',p:'shàng chē',m:'to get on or into (a bus, train, car etc)',e:'⚡',en:true},
+    {h:'马路',p:'mǎ lù',m:'road',e:'📦',en:true},
+    {h:'门票',p:'mén piào',m:'ticket (for theater, cinema etc)',e:'📦',en:true},
+    {h:'机票',p:'jī piào',m:'air ticket',e:'📦',en:true},
+    {h:'楼上',p:'lóu shàng',m:'upstairs',e:'📍',en:true},
+    {h:'打球',p:'dǎ qiú',m:'to play ball',e:'⚡',en:true},
+    {h:'下雨',p:'xià yǔ',m:'to rain',e:'⚡',en:true},
+    {h:'下车',p:'xià chē',m:'to get off or out of (a bus, train, car etc)',e:'⚡',en:true},
+    {h:'杯子',p:'bēi zi',m:'cup',e:'📦',en:true},
+    {h:'放假',p:'fàng jià',m:'to have a holiday or vacation',e:'⚡',en:true},
+    {h:'路口',p:'lù kǒu',m:'crossing',e:'📦',en:true},
+    {h:'有名',p:'yǒu míng',m:'famous',e:'🎨',en:true},
+    {h:'中文',p:'Zhōng wén',m:'Chinese language',e:'📦',en:true},
+    {h:'弟',p:'dì',m:'junior male',e:'📦',en:true},
+    {h:'电视机',p:'diàn shì jī',m:'television set',e:'📦',en:true},
+    {h:'早饭',p:'zǎo fàn',m:'breakfast',e:'📦',en:true},
+    {h:'一点儿',p:'yī diǎn r',m:'a bit; a little bit',e:'🔢',en:true},
+    {h:'书店',p:'shū diàn',m:'bookstore',e:'📦',en:true},
+    {h:'放学',p:'fàng xué',m:'to dismiss students at the end of the school day',e:'⚡',en:true},
+    {h:'关上',p:'guān shàng',m:'to close (a door)',e:'⚡',en:true},
+    {h:'玩儿',p:'wán r',m:'to play',e:'⚡',en:true},
+    {h:'半天',p:'bàn tiān',m:'midair',e:'🔢',en:true},
+    {h:'星期天',p:'Xīng qī tiān',m:'Sunday',e:'⏰',en:true},
+    {h:'车票',p:'chē piào',m:'ticket (for a bus or train)',e:'📦',en:true},
+    {h:'看病',p:'kàn bìng',m:'to see a patient',e:'⚡',en:true},
+    {h:'电影院',p:'diàn yǐng yuàn',m:'cinema; movie theater',e:'📦',en:true},
+    {h:'前天',p:'qián tiān',m:'the day before yesterday',e:'⏰',en:true},
+    {h:'后天',p:'hòu tiān',m:'a posteriori',e:'📦',en:true},
+    {h:'渴',p:'kě',m:'thirsty',e:'🎨',en:true},
+    {h:'洗手间',p:'xǐ shǒu jiān',m:'toilet',e:'📦',en:true},
+    {h:'下课',p:'xià kè',m:'to be fired',e:'⚡',en:true},
+    {h:'请假',p:'qǐng jià',m:'to request leave of absence',e:'⚡',en:true},
+    {h:'米饭',p:'mǐfàn',m:'Cơm',e:'🍚',en:false},
+    {h:'里边',p:'lǐ bian',m:'inside',e:'↗️',en:true},
+    {h:'外语',p:'wài yǔ',m:'foreign language',e:'📦',en:true},
+    {h:'没事儿',p:'méi shì r',m:'never mind',e:'⚡',en:true},
+    {h:'一块儿',p:'yī kuài r',m:'a piece; a chunk',e:'➡️',en:true},
+    {h:'书包',p:'shū bāo',m:'satchel',e:'📦',en:true},
+    {h:'小学生',p:'xiǎo xué shēng',m:'schoolchild',e:'📦',en:true},
+    {h:'外边',p:'wài bian',m:'abroad',e:'↗️',en:true},
+    {h:'中学生',p:'zhōng xué shēng',m:'high school student',e:'📦',en:true},
+    {h:'本子',p:'běn zi',m:'book',e:'📦',en:true},
+    {h:'星期日',p:'Xīng qī rì',m:'Sunday',e:'⏰',en:true},
+    {h:'课本',p:'kè běn',m:'textbook',e:'📦',en:true},
+    {h:'汉语',p:'Hàn yǔ',m:'Chinese language',e:'📦',en:true},
+    {h:'后边',p:'hòu bian',m:'later; afterwards',e:'↗️',en:true},
+    {h:'西边',p:'xī biān',m:'west',e:'↗️',en:true},
+    {h:'上边',p:'shàng bian',m:'above',e:'↗️',en:true},
+    {h:'打车',p:'dǎ chē',m:'to hitch a lift',e:'⚡',en:true},
+    {h:'东边',p:'dōng bian',m:'east',e:'↗️',en:true},
+    {h:'包子',p:'bāo zi',m:'bao (steamed stuffed bun)',e:'📦',en:true},
+    {h:'不客气',p:'bú kèqi',m:'Không có gì',e:'😊',en:false},
+    {h:'南边',p:'nán bian',m:'south',e:'↗️',en:true},
+    {h:'北边',p:'běi biān',m:'north',e:'↗️',en:true},
+    {h:'女孩儿',p:'nǚ hái r',m:'girl',e:'📝',en:true},
+    {h:'下边',p:'xià bian',m:'under',e:'↗️',en:true},
+    {h:'汉字',p:'hàn zì',m:'Korean: hanja',e:'📦',en:true},
+    {h:'请进',p:'qǐng jìn',m:'"please come in"',e:'📝',en:true},
+    {h:'好玩儿',p:'hǎo wán r',m:'fun',e:'🎨',en:true},
+    {h:'前边',p:'qián bian',m:'front',e:'↗️',en:true},
+    {h:'小孩儿',p:'xiǎo hái r',m:'child',e:'📝',en:true},
+    {h:'教学楼',p:'jiào xué lóu',m:'teaching block',e:'📦',en:true},
+    {h:'网友',p:'wǎng yǒu',m:'online friend',e:'📦',en:true},
+    {h:'课文',p:'kè wén',m:'text',e:'📦',en:true},
+    {h:'请坐',p:'qǐng zuò',m:'please, have a seat',e:'📝',en:true},
+    {h:'半年',p:'bàn nián',m:'half a year',e:'👤',en:true},
+    {h:'听写',p:'tīng xiě',m:'dictation',e:'⚡',en:true},
+    {h:'面条儿',p:'miàn tiáo r',m:'noodles',e:'📝',en:true},
+    {h:'男孩儿',p:'nán hái r',m:'boy',e:'📝',en:true},
+    {h:'一下儿',p:'yī xià r',m:'all of sudden',e:'📝',en:true},
+    {h:'有一些',p:'yǒu yī xiē',m:'some',e:'📝',en:true},
+  ],
+  2: [
+    {h:'啊',p:'ā',m:'Ah!',e:'🔤',en:true},
+    {h:'让',p:'ràng',m:'to yield',e:'⚡',en:true},
+    {h:'但',p:'dàn',m:'merely; only; just',e:'🔗',en:true},
+    {h:'自己',p:'zì jǐ',m:'oneself',e:'🙂',en:true},
+    {h:'得',p:'dé',m:'proud',e:'🔤',en:true},
+    {h:'可以',p:'kě yǐ',m:'can',e:'⚡',en:true},
+    {h:'为',p:'wéi',m:'to be',e:'📌',en:true},
+    {h:'已经',p:'yǐ jīng',m:'already',e:'➡️',en:true},
+    {h:'这样',p:'zhè yàng',m:'so',e:'🙂',en:true},
+    {h:'如果',p:'rú guǒ',m:'if',e:'🔗',en:true},
+    {h:'因为',p:'yīn wèi',m:'because',e:'📌',en:true},
+    {h:'又',p:'yòu',m:'also',e:'➡️',en:true},
+    {h:'只',p:'zhǐ',m:'but',e:'➡️',en:true},
+    {h:'问题',p:'wèn tí',m:'issue',e:'📦',en:true},
+    {h:'它',p:'tā',m:'it',e:'🙂',en:true},
+    {h:'但是',p:'dàn shì',m:'but; however',e:'🔗',en:true},
+    {h:'该',p:'gāi',m:'that',e:'⚡',en:true},
+    {h:'更',p:'gēng',m:'to experience',e:'➡️',en:true},
+    {h:'可能',p:'kě néng',m:'maybe',e:'⚡',en:true},
+    {h:'才',p:'cái',m:'just now',e:'➡️',en:true},
+    {h:'像',p:'xiàng',m:'image',e:'⚡',en:true},
+    {h:'当',p:'dāng',m:'(onom.) dong',e:'📌',en:true},
+    {h:'所以',p:'suǒ yǐ',m:'so',e:'🔗',en:true},
+    {h:'那么',p:'nà me',m:'so',e:'🙂',en:true},
+    {h:'向',p:'Xiàng',m:'surname Xiang',e:'📌',en:true},
+    {h:'这么',p:'zhè me',m:'so much',e:'🙂',en:true},
+    {h:'认为',p:'rèn wéi',m:'to believe; to think; to consider; to feel',e:'⚡',en:true},
+    {h:'应该',p:'yīng gāi',m:'must',e:'⚡',en:true},
+    {h:'带',p:'dài',m:'band',e:'⚡',en:true},
+    {h:'位',p:'wèi',m:'seat',e:'🔹',en:true},
+    {h:'大家',p:'dà jiā',m:'everyone',e:'🙂',en:true},
+    {h:'发现',p:'fā xiàn',m:'a discovery',e:'⚡',en:true},
+    {h:'一定',p:'yī dìng',m:'must',e:'➡️',en:true},
+    {h:'生活',p:'shēng huó',m:'life',e:'⚡',en:true},
+    {h:'一直',p:'yī zhí',m:'straight (in a straight line)',e:'➡️',en:true},
+    {h:'不过',p:'bù guò',m:'but',e:'🔗',en:true},
+    {h:'公司',p:'gōng sī',m:'company; firm; corporation',e:'📦',en:true},
+    {h:'不要',p:'bù yào',m:'don\'t!',e:'➡️',en:true},
+    {h:'成',p:'Chéng',m:'surname Cheng',e:'⚡',en:true},
+    {h:'名',p:'míng',m:'name',e:'🔹',en:true},
+    {h:'所有',p:'suǒ yǒu',m:'all',e:'⚡',en:true},
+    {h:'而且',p:'ér qiě',m:'moreover',e:'🔗',en:true},
+    {h:'必须',p:'bì xū',m:'must',e:'➡️',en:true},
+    {h:'长',p:'cháng',m:'long',e:'🎨',en:true},
+    {h:'成为',p:'chéng wéi',m:'to become; to turn into',e:'⚡',en:true},
+    {h:'其他',p:'qí tā',m:'other',e:'🙂',en:true},
+    {h:'事情',p:'shì qing',m:'affair; matter; thing; business',e:'📦',en:true},
+    {h:'感觉',p:'gǎn jué',m:'to feel; to perceive',e:'📦',en:true},
+    {h:'然后',p:'rán hòu',m:'then; after that; afterwards',e:'🔗',en:true},
+    {h:'条',p:'tiáo',m:'item',e:'🔹',en:true},
+    {h:'场',p:'cháng',m:'threshing floor',e:'🔹',en:true},
+    {h:'件',p:'jiàn',m:'item',e:'🔹',en:true},
+    {h:'进行',p:'jìn xíng',m:'to do',e:'⚡',en:true},
+    {h:'为什么',p:'wèi shén me',m:'why?',e:'🙂',en:true},
+    {h:'或',p:'huò',m:'or',e:'🔗',en:true},
+    {h:'出现',p:'chū xiàn',m:'to arise',e:'⚡',en:true},
+    {h:'头',p:'tóu',m:'end',e:'📦',en:true},
+    {h:'见到',p:'jiàn dào',m:'to see',e:'⚡',en:true},
+    {h:'通过',p:'tōng guò',m:'to pass (a test)',e:'📌',en:true},
+    {h:'周',p:'Zhōu',m:'surname Zhou',e:'🔹',en:true},
+    {h:'过去',p:'guò qù',m:'former',e:'⚡',en:true},
+    {h:'参加',p:'cān jiā',m:'to join',e:'⚡',en:true},
+    {h:'安全',p:'ān quán',m:'safe; secure',e:'🎨',en:true},
+    {h:'结果',p:'jiē guǒ',m:'to bear fruit',e:'📦',en:true},
+    {h:'或者',p:'huò zhě',m:'or',e:'🔗',en:true},
+    {h:'不错',p:'bù cuò',m:'right',e:'🎨',en:true},
+    {h:'机会',p:'jī huì',m:'chance',e:'📦',en:true},
+    {h:'完全',p:'wán quán',m:'complete; whole',e:'🎨',en:true},
+    {h:'完',p:'wán',m:'whole',e:'⚡',en:true},
+    {h:'发',p:'fā',m:'to issue',e:'⚡',en:true},
+    {h:'计划',p:'jì huà',m:'plan',e:'📦',en:true},
+    {h:'可是',p:'kě shì',m:'but; however',e:'🔗',en:true},
+    {h:'全',p:'Quán',m:'surname Quan',e:'➡️',en:true},
+    {h:'以后',p:'yǐ hòu',m:'after',e:'↗️',en:true},
+    {h:'要求',p:'yāo qiú',m:'to ask',e:'⚡',en:true},
+    {h:'信',p:'xìn',m:'mail',e:'📦',en:true},
+    {h:'队',p:'duì',m:'team',e:'📦',en:true},
+    {h:'接',p:'jiē',m:'to join',e:'⚡',en:true},
+    {h:'相信',p:'xiāng xìn',m:'to be convinced (that sth is true); to believe',e:'⚡',en:true},
+    {h:'刚',p:'gāng',m:'hard',e:'➡️',en:true},
+    {h:'虽然',p:'suī rán',m:'although',e:'🔗',en:true},
+    {h:'原因',p:'yuán yīn',m:'cause',e:'📦',en:true},
+    {h:'只要',p:'zhǐ yào',m:'if only',e:'🔗',en:true},
+    {h:'不同',p:'bù tóng',m:'distinct',e:'🎨',en:true},
+    {h:'进入',p:'jìn rù',m:'to join',e:'⚡',en:true},
+    {h:'有人',p:'yǒu rén',m:'people',e:'🙂',en:true},
+    {h:'分钟',p:'fēn zhōng',m:'minute',e:'🔹',en:true},
+    {h:'接受',p:'jiē shòu',m:'to accept',e:'⚡',en:true},
+    {h:'其中',p:'qí zhōng',m:'in',e:'🙂',en:true},
+    {h:'人们',p:'rén men',m:'people',e:'📦',en:true},
+    {h:'道',p:'dào',m:'road',e:'🔹',en:true},
+    {h:'能够',p:'néng gòu',m:'can',e:'⚡',en:true},
+    {h:'拉',p:'lā',m:'to pull',e:'⚡',en:true},
+    {h:'完成',p:'wán chéng',m:'to complete; to accomplish',e:'⚡',en:true},
+    {h:'求',p:'qiú',m:'to seek',e:'⚡',en:true},
+    {h:'帮助',p:'bāng zhù',m:'assistance; aid',e:'⚡',en:true},
+    {h:'变',p:'biàn',m:'to vary',e:'⚡',en:true},
+    {h:'加',p:'Jiā',m:'surname Jia',e:'⚡',en:true},
+    {h:'当时',p:'dāng shí',m:'then',e:'⏰',en:true},
+    {h:'努力',p:'nǔ lì',m:'hard-working; conscientious',e:'🎨',en:true},
+    {h:'部分',p:'bù fen',m:'part',e:'📦',en:true},
+    {h:'以前',p:'yǐ qián',m:'ago',e:'↗️',en:true},
+    {h:'办法',p:'bàn fǎ',m:'means',e:'📦',en:true},
+    {h:'特别',p:'tè bié',m:'unusual; special',e:'➡️',en:true},
+    {h:'真正',p:'zhēn zhèng',m:'really; indeed',e:'➡️',en:true},
+    {h:'掉',p:'diào',m:'to wag',e:'⚡',en:true},
+    {h:'改变',p:'gǎi biàn',m:'to alter',e:'⚡',en:true},
+    {h:'讲',p:'jiǎng',m:'speech',e:'⚡',en:true},
+    {h:'离开',p:'lí kāi',m:'to depart; to leave',e:'⚡',en:true},
+    {h:'万',p:'mò',m:'used in 俟',e:'🔢',en:true},
+    {h:'生',p:'shēng',m:'raw',e:'⚡',en:true},
+    {h:'片',p:'piān',m:'disk',e:'🔹',en:true},
+    {h:'同时',p:'tóng shí',m:'simultaneously',e:'🔗',en:true},
+    {h:'以为',p:'yǐ wéi',m:'to think',e:'⚡',en:true},
+    {h:'越',p:'Yuè',m:'abbr. for Vietnam 越南',e:'➡️',en:true},
+    {h:'方法',p:'fāng fǎ',m:'way',e:'📦',en:true},
+    {h:'组',p:'Zǔ',m:'surname Zu',e:'📦',en:true},
+    {h:'直接',p:'zhí jiē',m:'immediate',e:'🎨',en:true},
+    {h:'卖',p:'mài',m:'to sell',e:'⚡',en:true},
+    {h:'选',p:'xuǎn',m:'to pick',e:'⚡',en:true},
+    {h:'句',p:'gōu',m:'variant of 勾',e:'🔹',en:true},
+    {h:'影响',p:'yǐng xiǎng',m:'effect',e:'⚡',en:true},
+    {h:'永远',p:'yǒng yuǎn',m:'forever',e:'➡️',en:true},
+    {h:'方面',p:'fāng miàn',m:'side',e:'📦',en:true},
+    {h:'也许',p:'yě xǔ',m:'maybe',e:'➡️',en:true},
+    {h:'面',p:'miàn',m:'top',e:'📦',en:true},
+    {h:'活动',p:'huó dòng',m:'loose',e:'⚡',en:true},
+    {h:'份',p:'fèn',m:'variant of 分',e:'🔹',en:true},
+    {h:'信息',p:'xìn xī',m:'news',e:'📦',en:true},
+    {h:'最近',p:'zuì jìn',m:'soon',e:'⏰',en:true},
+    {h:'换',p:'huàn',m:'to switch',e:'⚡',en:true},
+    {h:'狗',p:'gǒu',m:'dog',e:'📦',en:true},
+    {h:'靠',p:'kào',m:'to trust',e:'⚡',en:true},
+    {h:'脸',p:'liǎn',m:'face',e:'📦',en:true},
+    {h:'快乐',p:'kuài lè',m:'happy; joyful',e:'🎨',en:true},
+    {h:'使用',p:'shǐ yòng',m:'to use',e:'⚡',en:true},
+    {h:'来自',p:'lái zì',m:'to come from (a place)',e:'⚡',en:true},
+    {h:'段',p:'Duàn',m:'surname Duan',e:'🔹',en:true},
+    {h:'检查',p:'jiǎn chá',m:'inspection',e:'⚡',en:true},
+    {h:'中心',p:'zhōng xīn',m:'core',e:'📦',en:true},
+    {h:'米',p:'Mǐ',m:'surname Mi',e:'📦',en:true},
+    {h:'行动',p:'xíng dòng',m:'action',e:'⚡',en:true},
+    {h:'开心',p:'kāi xīn',m:'to rejoice',e:'🎨',en:true},
+    {h:'懂',p:'dǒng',m:'to understand',e:'⚡',en:true},
+    {h:'卡',p:'kǎ',m:'to stop',e:'📦',en:true},
+    {h:'带来',p:'dài lái',m:'to bring',e:'⚡',en:true},
+    {h:'办',p:'bàn',m:'to do',e:'⚡',en:true},
+    {h:'过来',p:'guò lái',m:'to manage',e:'⚡',en:true},
+    {h:'算',p:'suàn',m:'to figure',e:'⚡',en:true},
+    {h:'辆',p:'liàng',m:'classifier for vehicles',e:'🔹',en:true},
+    {h:'药',p:'yào',m:'leaf of the iris',e:'📦',en:true},
+    {h:'留',p:'liú',m:'old variant of 留',e:'⚡',en:true},
+    {h:'家庭',p:'jiā tíng',m:'family',e:'📦',en:true},
+    {h:'交',p:'jiāo',m:'to deliver',e:'⚡',en:true},
+    {h:'套',p:'tào',m:'cover',e:'🔹',en:true},
+    {h:'全部',p:'quán bù',m:'whole; all',e:'🔢',en:true},
+    {h:'刚刚',p:'gāng gang',m:'just recently',e:'➡️',en:true},
+    {h:'正常',p:'zhèng cháng',m:'normal',e:'🎨',en:true},
+    {h:'黑',p:'Hēi',m:'abbr. for Heilongjiang province 黑龙江',e:'🎨',en:true},
+    {h:'店',p:'diàn',m:'inn; old-style hotel',e:'📦',en:true},
+    {h:'服务',p:'fú wù',m:'service',e:'⚡',en:true},
+    {h:'想到',p:'xiǎng dào',m:'to think of',e:'⚡',en:true},
+    {h:'行为',p:'xíng wéi',m:'action',e:'📦',en:true},
+    {h:'挺',p:'tǐng',m:'very',e:'➡️',en:true},
+    {h:'好像',p:'hǎo xiàng',m:'as if',e:'⚡',en:true},
+    {h:'克',p:'Kè',m:'abbr. for 克罗地亚, Croatia',e:'🔹',en:true},
+    {h:'愿意',p:'yuàn yì',m:'ready',e:'⚡',en:true},
+    {h:'装',p:'zhuāng',m:'dress',e:'⚡',en:true},
+    {h:'音乐',p:'yīn yuè',m:'music',e:'📦',en:true},
+    {h:'感谢',p:'gǎn xiè',m:'thanks',e:'⚡',en:true},
+    {h:'座',p:'zuò',m:'seat',e:'🔹',en:true},
+    {h:'那样',p:'nà yàng',m:'that kind',e:'🙂',en:true},
+    {h:'往',p:'wǎng',m:'to',e:'📌',en:true},
+    {h:'眼',p:'yǎn',m:'eye',e:'📦',en:true},
+    {h:'感到',p:'gǎn dào',m:'to feel; to sense; to perceive',e:'⚡',en:true},
+    {h:'清楚',p:'qīng chu',m:'clear',e:'🎨',en:true},
+    {h:'照片',p:'zhào piàn',m:'picture',e:'📦',en:true},
+    {h:'停',p:'tíng',m:'to stop',e:'⚡',en:true},
+    {h:'银行',p:'yín háng',m:'bank',e:'📦',en:true},
+    {h:'故事',p:'gù shì',m:'old practice',e:'📦',en:true},
+    {h:'气',p:'qì',m:'smell',e:'📦',en:true},
+    {h:'倒',p:'dǎo',m:'to overthrow',e:'⚡',en:true},
+    {h:'酒',p:'jiǔ',m:'liquor',e:'📦',en:true},
+    {h:'原来',p:'yuán lái',m:'former',e:'➡️',en:true},
+    {h:'它们',p:'tā men',m:'they (for inanimate objects)',e:'🙂',en:true},
+    {h:'红',p:'Hóng',m:'surname Hong',e:'🎨',en:true},
+    {h:'欢迎',p:'huān yíng',m:'welcome',e:'⚡',en:true},
+    {h:'一般',p:'yī bān',m:'same',e:'🎨',en:true},
+    {h:'可爱',p:'kě ài',m:'cute',e:'🎨',en:true},
+    {h:'边',p:'biān',m:'side',e:'➡️',en:true},
+    {h:'新闻',p:'xīn wén',m:'news',e:'📦',en:true},
+    {h:'眼睛',p:'yǎn jing',m:'eye',e:'📦',en:true},
+    {h:'做到',p:'zuò dào',m:'to achieve',e:'⚡',en:true},
+    {h:'近',p:'jìn',m:'near',e:'🎨',en:true},
+    {h:'怎样',p:'zěn yàng',m:'how',e:'🙂',en:true},
+    {h:'收',p:'shōu',m:'to stop',e:'⚡',en:true},
+    {h:'声音',p:'shēng yīn',m:'voice',e:'📦',en:true},
+    {h:'数',p:'shǔ',m:'to count',e:'🔢',en:true},
+    {h:'变成',p:'biàn chéng',m:'to become',e:'⚡',en:true},
+    {h:'受到',p:'shòu dào',m:'to be ...ed (praised, educated, punished etc)',e:'⚡',en:true},
+    {h:'经过',p:'jīng guò',m:'course',e:'📌',en:true},
+    {h:'只能',p:'zhǐ néng',m:'can only',e:'⚡',en:true},
+    {h:'哭',p:'kū',m:'to cry; to weep',e:'⚡',en:true},
+    {h:'怕',p:'Pà',m:'surname Pa',e:'⚡',en:true},
+    {h:'离',p:'chī',m:'mythical beast (archaic)',e:'⚡',en:true},
+    {h:'漂亮',p:'piào liang',m:'pretty',e:'🎨',en:true},
+    {h:'重新',p:'chóng xīn',m:'again; once more; re-',e:'➡️',en:true},
+    {h:'提',p:'dī',m:'used in 防 and 溜',e:'⚡',en:true},
+    {h:'度',p:'dù',m:'limit',e:'🔹',en:true},
+    {h:'经常',p:'jīng cháng',m:'day-to-day; everyday; daily',e:'➡️',en:true},
+    {h:'面前',p:'miàn qián',m:'facing',e:'↗️',en:true},
+    {h:'低',p:'dī',m:'low',e:'🎨',en:true},
+    {h:'节目',p:'jié mù',m:'program',e:'📦',en:true},
+    {h:'健康',p:'jiàn kāng',m:'health',e:'🎨',en:true},
+    {h:'弄',p:'lòng',m:'lane',e:'⚡',en:true},
+    {h:'作用',p:'zuò yòng',m:'action',e:'📦',en:true},
+    {h:'满',p:'Mǎn',m:'Manchu ethnic group',e:'🎨',en:true},
+    {h:'说明',p:'shuō míng',m:'to show',e:'⚡',en:true},
+    {h:'许多',p:'xǔ duō',m:'many',e:'🔢',en:true},
+    {h:'同样',p:'tóng yàng',m:'same',e:'➡️',en:true},
+    {h:'身边',p:'shēn biān',m:'on hand',e:'📍',en:true},
+    {h:'越来越',p:'yuè lái yuè',m:'more and more',e:'➡️',en:true},
+    {h:'短',p:'duǎn',m:'short',e:'🎨',en:true},
+    {h:'意思',p:'yì si',m:'fun',e:'📦',en:true},
+    {h:'意见',p:'yì jiàn',m:'idea',e:'📦',en:true},
+    {h:'查',p:'Zhā',m:'surname Zha',e:'⚡',en:true},
+    {h:'脚',p:'jiǎo',m:'foot',e:'📦',en:true},
+    {h:'主要',p:'zhǔ yào',m:'main',e:'➡️',en:true},
+    {h:'市',p:'shì',m:'city',e:'📦',en:true},
+    {h:'不少',p:'bù shǎo',m:'many',e:'🔢',en:true},
+    {h:'讨论',p:'tǎo lùn',m:'to discuss; to talk over',e:'⚡',en:true},
+    {h:'超过',p:'chāo guò',m:'to exceed',e:'⚡',en:true},
+    {h:'比如',p:'bǐ rú',m:'such as',e:'⚡',en:true},
+    {h:'假',p:'gēi',m:'used in 掰',e:'🎨',en:true},
+    {h:'后来',p:'hòu lái',m:'newly arrived',e:'⏰',en:true},
+    {h:'嘴',p:'zuǐ',m:'beak',e:'📦',en:true},
+    {h:'自由',p:'zì yóu',m:'freedom; liberty',e:'🎨',en:true},
+    {h:'改',p:'gǎi',m:'to alter',e:'⚡',en:true},
+    {h:'就要',p:'jiù yào',m:'will',e:'➡️',en:true},
+    {h:'加油',p:'jiā yóu',m:'to refuel',e:'⚡',en:true},
+    {h:'省',p:'shěng',m:'province',e:'📦',en:true},
+    {h:'海',p:'Hǎi',m:'surname Hai',e:'📦',en:true},
+    {h:'夜',p:'yè',m:'variant of 夜',e:'⏰',en:true},
+    {h:'十分',p:'shí fēn',m:'very',e:'➡️',en:true},
+    {h:'称',p:'chèn',m:'to fit',e:'⚡',en:true},
+    {h:'年轻',p:'nián qīng',m:'young',e:'🎨',en:true},
+    {h:'条件',p:'tiáo jiàn',m:'situation; state; condition',e:'📦',en:true},
+    {h:'晚安',p:'wǎn ān',m:'Chúc ngủ ngon',e:'🌙',en:false},
+    {h:'画',p:'huà',m:'to draw; to paint',e:'📦',en:true},
+    {h:'广告',p:'guǎng gào',m:'to advertise',e:'📦',en:true},
+    {h:'提出',p:'tí chū',m:'to propose',e:'⚡',en:true},
+    {h:'运动',p:'yùn dòng',m:'sports',e:'⚡',en:true},
+    {h:'样子',p:'yàng zi',m:'model',e:'📦',en:true},
+    {h:'实现',p:'shí xiàn',m:'to achieve',e:'⚡',en:true},
+    {h:'刚才',p:'gāng cái',m:'just now',e:'⏰',en:true},
+    {h:'猫',p:'māo',m:'cat',e:'📦',en:true},
+    {h:'通',p:'tōng',m:'open',e:'⚡',en:true},
+    {h:'办公室',p:'bàn gōng shì',m:'office',e:'📦',en:true},
+    {h:'正确',p:'zhèng què',m:'correct; sound; right; proper',e:'🎨',en:true},
+    {h:'爱情',p:'ài qíng',m:'romance; love (romantic)',e:'📦',en:true},
+    {h:'收到',p:'shōu dào',m:'to receive',e:'⚡',en:true},
+    {h:'够',p:'gòu',m:'enough (too much)',e:'⚡',en:true},
+    {h:'正是',p:'zhèng shì',m:'is precisely',e:'⚡',en:true},
+    {h:'方向',p:'fāng xiàng',m:'direction; orientation',e:'📦',en:true},
+    {h:'排',p:'pái',m:'raft',e:'⚡',en:true},
+    {h:'鱼',p:'yú',m:'Cá',e:'🐟',en:false},
+    {h:'关心',p:'guān xīn',m:'to care about',e:'⚡',en:true},
+    {h:'节',p:'jiē',m:'see 节骨眼',e:'📦',en:true},
+    {h:'留下',p:'liú xià',m:'to keep',e:'⚡',en:true},
+    {h:'教育',p:'jiào yù',m:'to teach',e:'⚡',en:true},
+    {h:'日子',p:'rì zi',m:'day',e:'📦',en:true},
+    {h:'取',p:'qǔ',m:'to get',e:'⚡',en:true},
+    {h:'层',p:'céng',m:'(math.) sheaf',e:'🔹',en:true},
+    {h:'心里',p:'xīn li',m:'mind',e:'📍',en:true},
+    {h:'腿',p:'tuǐ',m:'leg',e:'📦',en:true},
+    {h:'全国',p:'quán guó',m:'national',e:'📦',en:true},
+    {h:'街',p:'jiē',m:'street',e:'📦',en:true},
+    {h:'笔',p:'bǐ',m:'pen',e:'🔹',en:true},
+    {h:'通知',p:'tōng zhī',m:'notice',e:'📦',en:true},
+    {h:'鞋',p:'xié',m:'shoe',e:'📦',en:true},
+    {h:'习惯',p:'xí guàn',m:'habit',e:'📦',en:true},
+    {h:'目的',p:'mù dì',m:'purpose; aim; goal; target; objective',e:'📦',en:true},
+    {h:'国际',p:'guó jì',m:'international',e:'📦',en:true},
+    {h:'周末',p:'zhōu mò',m:'weekend',e:'⏰',en:true},
+    {h:'推',p:'tuī',m:'to cut',e:'⚡',en:true},
+    {h:'听说',p:'tīng shuō',m:'hearsay',e:'⚡',en:true},
+    {h:'油',p:'yóu',m:'oil',e:'📦',en:true},
+    {h:'科学',p:'kē xué',m:'science',e:'📦',en:true},
+    {h:'喂',p:'wéi',m:'hello (when answering the phone)',e:'⚡',en:true},
+    {h:'心情',p:'xīn qíng',m:'mood; frame of mind',e:'📦',en:true},
+    {h:'接着',p:'jiē zhe',m:'then',e:'🔗',en:true},
+    {h:'流',p:'liú',m:'to flow',e:'⚡',en:true},
+    {h:'实在',p:'shí zài',m:'true',e:'➡️',en:true},
+    {h:'表',p:'biǎo',m:'a form',e:'📦',en:true},
+    {h:'船',p:'chuán',m:'variant of 船',e:'📦',en:true},
+    {h:'养',p:'yǎng',m:'to support',e:'⚡',en:true},
+    {h:'鸡',p:'jī',m:'fowl',e:'📦',en:true},
+    {h:'遍',p:'biàn',m:'variant of 遍',e:'🔹',en:true},
+    {h:'怎么样',p:'zěn me yàng',m:'how?',e:'🙂',en:true},
+    {h:'瓶',p:'píng',m:'vase',e:'🔹',en:true},
+    {h:'普通',p:'pǔ tōng',m:'common',e:'🎨',en:true},
+    {h:'打算',p:'dǎ suàn',m:'plan',e:'⚡',en:true},
+    {h:'重点',p:'chóng diǎn',m:'to re-evaluate',e:'📦',en:true},
+    {h:'咱们',p:'zán men',m:'(dialect) I or me',e:'🙂',en:true},
+    {h:'小心',p:'xiǎo xīn',m:'to take care',e:'🎨',en:true},
+    {h:'不够',p:'bù gòu',m:'not enough',e:'🎨',en:true},
+    {h:'怎么办',p:'zěn me bàn',m:'what\'s to be done',e:'🙂',en:true},
+    {h:'举行',p:'jǔ xíng',m:'to hold (a meeting, ceremony etc)',e:'⚡',en:true},
+    {h:'想法',p:'xiǎng fǎ',m:'to think of a way (to do sth)',e:'📦',en:true},
+    {h:'动物',p:'dòng wù',m:'animal',e:'📦',en:true},
+    {h:'不行',p:'bù xíng',m:'won\'t do',e:'🎨',en:true},
+    {h:'明星',p:'míng xīng',m:'star; celebrity',e:'📦',en:true},
+    {h:'级',p:'jí',m:'rank',e:'🔹',en:true},
+    {h:'顺利',p:'shùn lì',m:'smoothly; without a hitch',e:'🎨',en:true},
+    {h:'水平',p:'shuǐ píng',m:'standard',e:'📦',en:true},
+    {h:'网',p:'wǎng',m:'net',e:'📦',en:true},
+    {h:'借',p:'jiè',m:'to lend',e:'⚡',en:true},
+    {h:'长大',p:'zhǎng dà',m:'to grow up',e:'⚡',en:true},
+    {h:'交给',p:'jiāo gěi',m:'to give; to deliver; to hand over',e:'⚡',en:true},
+    {h:'头发',p:'tóu fa',m:'hair (on the head)',e:'📦',en:true},
+    {h:'封',p:'Fēng',m:'surname Feng',e:'🔹',en:true},
+    {h:'蛋',p:'Dàn',m:'variant of 蜑',e:'📦',en:true},
+    {h:'科',p:'kē',m:'laws',e:'📦',en:true},
+    {h:'占',p:'zhàn',m:'variant of 占',e:'⚡',en:true},
+    {h:'词',p:'cí',m:'old variant of 词',e:'📦',en:true},
+    {h:'鸟',p:'diǎo',m:'penis',e:'📦',en:true},
+    {h:'取得',p:'qǔ dé',m:'to acquire; to get; to obtain',e:'⚡',en:true},
+    {h:'想起',p:'xiǎng qǐ',m:'to recall',e:'⚡',en:true},
+    {h:'蓝',p:'Lán',m:'surname Lan',e:'🎨',en:true},
+    {h:'纸',p:'zhǐ',m:'variant of 纸',e:'📦',en:true},
+    {h:'背',p:'bēi',m:'variant of 背',e:'⚡',en:true},
+    {h:'一生',p:'yī shēng',m:'all one\'s life; throughout one\'s life',e:'📦',en:true},
+    {h:'照顾',p:'zhào gu',m:'to attend to',e:'⚡',en:true},
+    {h:'急',p:'jí',m:'rapid',e:'⚡',en:true},
+    {h:'疼',p:'téng',m:'to love dearly',e:'⚡',en:true},
+    {h:'态度',p:'tài du',m:'manner',e:'📦',en:true},
+    {h:'小组',p:'xiǎo zǔ',m:'group',e:'📦',en:true},
+    {h:'数字',p:'shù zì',m:'digit',e:'📦',en:true},
+    {h:'礼物',p:'lǐ wù',m:'gift; present',e:'📦',en:true},
+    {h:'酒店',p:'jiǔ diàn',m:'hotel',e:'📦',en:true},
+    {h:'交通',p:'jiāo tōng',m:'traffic',e:'📦',en:true},
+    {h:'亮',p:'liàng',m:'clear',e:'⚡',en:true},
+    {h:'篇',p:'piān',m:'sheet',e:'🔹',en:true},
+    {h:'出口',p:'chū kǒu',m:'an exit',e:'⚡',en:true},
+    {h:'味道',p:'wèi dao',m:'flavor; taste',e:'📦',en:true},
+    {h:'平',p:'Píng',m:'surname Ping',e:'🎨',en:true},
+    {h:'出发',p:'chū fā',m:'to set off',e:'⚡',en:true},
+    {h:'接到',p:'jiē dào',m:'to receive (letter etc)',e:'⚡',en:true},
+    {h:'提高',p:'tí gāo',m:'to raise',e:'⚡',en:true},
+    {h:'千',p:'qiān',m:'thousand',e:'🔢',en:true},
+    {h:'墙',p:'qiáng',m:'variant of 墙, wall',e:'📦',en:true},
+    {h:'满意',p:'mǎn yì',m:'pleased',e:'⚡',en:true},
+    {h:'食物',p:'shí wù',m:'food',e:'📦',en:true},
+    {h:'司机',p:'sī jī',m:'chauffeur; driver',e:'📦',en:true},
+    {h:'大量',p:'dà liàng',m:'bulk',e:'🔢',en:true},
+    {h:'黄',p:'Huáng',m:'surname Huang or Hwang',e:'👤',en:true},
+    {h:'轻',p:'qīng',m:'easy',e:'🎨',en:true},
+    {h:'信号',p:'xìn hào',m:'signal',e:'📦',en:true},
+    {h:'好多',p:'hǎo duō',m:'many',e:'🔢',en:true},
+    {h:'经理',p:'jīng lǐ',m:'manager',e:'📦',en:true},
+    {h:'大部分',p:'dà bù fen',m:'the majority',e:'🔢',en:true},
+    {h:'吹',p:'chuī',m:'to blow',e:'⚡',en:true},
+    {h:'颜色',p:'yán sè',m:'color',e:'📦',en:true},
+    {h:'成绩',p:'chéng jì',m:'grades',e:'📦',en:true},
+    {h:'角度',p:'jiǎo dù',m:'angle',e:'📦',en:true},
+    {h:'多么',p:'duō me',m:'to what extent',e:'➡️',en:true},
+    {h:'什么样',p:'shén me yàng',m:'what kind?; what sort?',e:'🙂',en:true},
+    {h:'语言',p:'yǔ yán',m:'language',e:'📦',en:true},
+    {h:'网站',p:'wǎng zhàn',m:'node',e:'📦',en:true},
+    {h:'地球',p:'dì qiú',m:'the earth',e:'📦',en:true},
+    {h:'雪',p:'Xuě',m:'surname Xue',e:'📦',en:true},
+    {h:'那时',p:'nà shí',m:'then',e:'🙂',en:true},
+    {h:'实际',p:'shí jì',m:'real',e:'📦',en:true},
+    {h:'心中',p:'xīn zhōng',m:'central point',e:'📍',en:true},
+    {h:'灯',p:'dēng',m:'lamp',e:'📦',en:true},
+    {h:'太阳',p:'tài yang',m:'sun',e:'📦',en:true},
+    {h:'可怕',p:'kě pà',m:'awful',e:'🎨',en:true},
+    {h:'方便',p:'fāng biàn',m:'suitable',e:'⚡',en:true},
+    {h:'爬',p:'pá',m:'to crawl',e:'⚡',en:true},
+    {h:'差不多',p:'chà bu duō',m:'almost',e:'📝',en:true},
+    {h:'高中',p:'gāo zhōng',m:'senior high school',e:'📦',en:true},
+    {h:'英语',p:'Yīng yǔ',m:'English (language)',e:'📦',en:true},
+    {h:'空气',p:'kōng qì',m:'air',e:'📦',en:true},
+    {h:'以下',p:'yǐ xià',m:'the following',e:'↗️',en:true},
+    {h:'喊',p:'hǎn',m:'to yell',e:'⚡',en:true},
+    {h:'讲话',p:'jiǎng huà',m:'to talk',e:'📦',en:true},
+    {h:'大多数',p:'dà duō shù',m:'(great) majority',e:'🔢',en:true},
+    {h:'随便',p:'suí biàn',m:'casual',e:'🎨',en:true},
+    {h:'随时',p:'suí shí',m:'at any time; at all times',e:'➡️',en:true},
+    {h:'合适',p:'hé shì',m:'fitting',e:'🎨',en:true},
+    {h:'相同',p:'xiāng tóng',m:'same',e:'🎨',en:true},
+    {h:'出生',p:'chū shēng',m:'to be born',e:'⚡',en:true},
+    {h:'以上',p:'yǐ shàng',m:'that amount or more',e:'↗️',en:true},
+    {h:'名单',p:'míng dān',m:'list of names',e:'📦',en:true},
+    {h:'答应',p:'dā ying',m:'to answer; to respond',e:'⚡',en:true},
+    {h:'公园',p:'gōng yuán',m:'park (for public recreation)',e:'📦',en:true},
+    {h:'红色',p:'hóng sè',m:'red (color)',e:'📦',en:true},
+    {h:'热情',p:'rè qíng',m:'cordial',e:'🎨',en:true},
+    {h:'到处',p:'dào chù',m:'everywhere',e:'➡️',en:true},
+    {h:'放下',p:'fàng xià',m:'to lay down',e:'⚡',en:true},
+    {h:'观点',p:'guān diǎn',m:'viewpoint',e:'📦',en:true},
+    {h:'公平',p:'gōng píng',m:'fair',e:'🎨',en:true},
+    {h:'高级',p:'gāo jí',m:'advanced',e:'🎨',en:true},
+    {h:'早就',p:'zǎo jiù',m:'already at an earlier time',e:'➡️',en:true},
+    {h:'的话',p:'de huà',m:'if (coming after a conditional clause)',e:'🔤',en:true},
+    {h:'骑',p:'jì',m:'mounted soldier',e:'⚡',en:true},
+    {h:'报纸',p:'bào zhǐ',m:'newspaper',e:'📦',en:true},
+    {h:'响',p:'xiǎng',m:'echo',e:'⚡',en:true},
+    {h:'收入',p:'shōu rù',m:'income',e:'📦',en:true},
+    {h:'河',p:'hé',m:'river',e:'📦',en:true},
+    {h:'练',p:'liàn',m:'to train',e:'⚡',en:true},
+    {h:'举',p:'jǔ',m:'variant of 举',e:'⚡',en:true},
+    {h:'多久',p:'duō jiǔ',m:'(not) a long time',e:'🙂',en:true},
+    {h:'租',p:'zū',m:'rent',e:'⚡',en:true},
+    {h:'同事',p:'tóng shì',m:'colleague; co-worker',e:'📦',en:true},
+    {h:'球队',p:'qiú duì',m:'sports team (basketball, soccer, football etc)',e:'📦',en:true},
+    {h:'舒服',p:'shū fu',m:'comfortable',e:'🎨',en:true},
+    {h:'上周',p:'shàng zhōu',m:'last week',e:'⏰',en:true},
+    {h:'单位',p:'dān wèi',m:'unit (of measure)',e:'📦',en:true},
+    {h:'体育',p:'tǐ yù',m:'sports',e:'📦',en:true},
+    {h:'黑色',p:'hēi sè',m:'black',e:'📦',en:true},
+    {h:'道路',p:'dào lù',m:'way',e:'📦',en:true},
+    {h:'大人',p:'dà ren',m:'adult',e:'📦',en:true},
+    {h:'角',p:'Jué',m:'surname Jue',e:'📦',en:true},
+    {h:'绿色',p:'lǜ sè',m:'green',e:'📦',en:true},
+    {h:'旅行',p:'lǚ xíng',m:'to travel',e:'⚡',en:true},
+    {h:'公路',p:'gōng lù',m:'road',e:'📦',en:true},
+    {h:'主人',p:'zhǔ rén',m:'host',e:'📦',en:true},
+    {h:'信心',p:'xìn xīn',m:'confidence',e:'📦',en:true},
+    {h:'故意',p:'gù yì',m:'deliberately; on purpose',e:'➡️',en:true},
+    {h:'闻',p:'Wén',m:'surname Wen',e:'⚡',en:true},
+    {h:'看法',p:'kàn fǎ',m:'view',e:'📦',en:true},
+    {h:'放心',p:'fàng xīn',m:'to be at ease',e:'⚡',en:true},
+    {h:'草',p:'cǎo',m:'variant of 草',e:'📦',en:true},
+    {h:'湖',p:'hú',m:'lake',e:'📦',en:true},
+    {h:'正好',p:'zhèng hǎo',m:'by chance',e:'🔊',en:true},
+    {h:'院',p:'yuàn',m:'courtyard',e:'📦',en:true},
+    {h:'安静',p:'ān jìng',m:'calm',e:'🎨',en:true},
+    {h:'道理',p:'dào li',m:'sense',e:'📦',en:true},
+    {h:'公里',p:'gōng lǐ',m:'kilometer',e:'🔹',en:true},
+    {h:'好处',p:'hǎo chǔ',m:'easy to get along with',e:'📦',en:true},
+    {h:'旅游',p:'lǚ yóu',m:'trip',e:'⚡',en:true},
+    {h:'作业',p:'zuò yè',m:'work',e:'📦',en:true},
+    {h:'家长',p:'jiā zhǎng',m:'patriarch',e:'📦',en:true},
+    {h:'绿',p:'lǜ',m:'green',e:'🎨',en:true},
+    {h:'重复',p:'chóng fù',m:'to repeat',e:'⚡',en:true},
+    {h:'小说',p:'xiǎo shuō',m:'novel',e:'📦',en:true},
+    {h:'教师',p:'jiào shī',m:'teacher',e:'📦',en:true},
+    {h:'白色',p:'bái sè',m:'white',e:'📦',en:true},
+    {h:'理想',p:'lǐ xiǎng',m:'ideal',e:'📦',en:true},
+    {h:'感动',p:'gǎn dòng',m:'moving',e:'⚡',en:true},
+    {h:'出租车',p:'chū zū chē',m:'taxi',e:'📦',en:true},
+    {h:'好事',p:'hǎo shì',m:'charity',e:'📦',en:true},
+    {h:'提到',p:'tí dào',m:'to mention',e:'⚡',en:true},
+    {h:'不如',p:'bù rú',m:'inferior to',e:'⚡',en:true},
+    {h:'题',p:'Tí',m:'surname Ti',e:'📦',en:true},
+    {h:'顾客',p:'gù kè',m:'customer; client',e:'📦',en:true},
+    {h:'难过',p:'nán guò',m:'to feel sad',e:'🎨',en:true},
+    {h:'组成',p:'zǔ chéng',m:'to form',e:'⚡',en:true},
+    {h:'流行',p:'liú xíng',m:'fashionable',e:'⚡',en:true},
+    {h:'送给',p:'sòng gěi',m:'to send',e:'⚡',en:true},
+    {h:'不久',p:'bù jiǔ',m:'soon',e:'🔢',en:true},
+    {h:'客人',p:'kè rén',m:'guest',e:'📦',en:true},
+    {h:'人口',p:'rén kǒu',m:'people',e:'📦',en:true},
+    {h:'平时',p:'píng shí',m:'ordinarily',e:'⏰',en:true},
+    {h:'比如说',p:'bǐ rú shuō',m:'for example',e:'⚡',en:true},
+    {h:'不好意思',p:'bù hǎo yì si',m:'to feel embarrassed',e:'⚡',en:true},
+    {h:'便宜',p:'biàn yí',m:'convenient',e:'🎨',en:true},
+    {h:'碰',p:'pèng',m:'variant of 碰',e:'⚡',en:true},
+    {h:'请求',p:'qǐng qiú',m:'request',e:'⚡',en:true},
+    {h:'准确',p:'zhǔn què',m:'accurate; exact; precise',e:'🎨',en:true},
+    {h:'碗',p:'wǎn',m:'variant of 碗',e:'📦',en:true},
+    {h:'碰到',p:'pèng dào',m:'to hit',e:'⚡',en:true},
+    {h:'蓝色',p:'lán sè',m:'blue (color)',e:'📦',en:true},
+    {h:'懂得',p:'dǒng de',m:'to understand; to know; to comprehend',e:'⚡',en:true},
+    {h:'广场',p:'guǎng chǎng',m:'public square; plaza',e:'📦',en:true},
+    {h:'好久',p:'hǎo jiǔ',m:'quite a while',e:'🔢',en:true},
+    {h:'夏天',p:'xià tiān',m:'summer',e:'⏰',en:true},
+    {h:'接下来',p:'jiē xià lái',m:'next',e:'⚡',en:true},
+    {h:'早餐',p:'zǎo cān',m:'breakfast',e:'📦',en:true},
+    {h:'图片',p:'tú piàn',m:'picture; photograph',e:'📦',en:true},
+    {h:'车辆',p:'chē liàng',m:'vehicle',e:'📦',en:true},
+    {h:'有意思',p:'yǒu yì si',m:'fun',e:'📝',en:true},
+    {h:'早晨',p:'zǎo chén',m:'early morning',e:'⏰',en:true},
+    {h:'出门',p:'chū mén',m:'to go out',e:'⚡',en:true},
+    {h:'以外',p:'yǐ wài',m:'beyond',e:'↗️',en:true},
+    {h:'做法',p:'zuò fǎ',m:'recipe',e:'📦',en:true},
+    {h:'作家',p:'zuò jiā',m:'author',e:'📦',en:true},
+    {h:'全体',p:'quán tǐ',m:'all',e:'📦',en:true},
+    {h:'地铁',p:'dì tiě',m:'subway train',e:'📦',en:true},
+    {h:'熟',p:'shú',m:'ripe; mature',e:'🎨',en:true},
+    {h:'小时候',p:'xiǎo shí hou',m:'in one\'s childhood',e:'⏰',en:true},
+    {h:'全身',p:'quán shēn',m:'the whole body',e:'📦',en:true},
+    {h:'练习',p:'liàn xí',m:'drill',e:'⚡',en:true},
+    {h:'咱',p:'zán',m:'variant of 咱',e:'🙂',en:true},
+    {h:'平安',p:'píng ān',m:'well',e:'🎨',en:true},
+    {h:'人数',p:'rén shù',m:'number of people',e:'📦',en:true},
+    {h:'队长',p:'duì zhǎng',m:'captain',e:'📦',en:true},
+    {h:'南方',p:'nán fāng',m:'south',e:'📍',en:true},
+    {h:'友好',p:'Yǒu hǎo',m:'Youhao district of Yichun city 市, Heilongjiang',e:'🎨',en:true},
+    {h:'亿',p:'yì',m:'100 million',e:'🔢',en:true},
+    {h:'对话',p:'duì huà',m:'to talk (with sb)',e:'⚡',en:true},
+    {h:'停车',p:'tíng chē',m:'to park',e:'⚡',en:true},
+    {h:'冬天',p:'dōng tiān',m:'winter',e:'⏰',en:true},
+    {h:'云',p:'yún',m:'(classical) to say',e:'📦',en:true},
+    {h:'青年',p:'qīng nián',m:'youth',e:'📦',en:true},
+    {h:'好人',p:'hǎo rén',m:'good person',e:'📦',en:true},
+    {h:'大声',p:'dà shēng',m:'loudly',e:'➡️',en:true},
+    {h:'分开',p:'fēn kāi',m:'to part',e:'⚡',en:true},
+    {h:'校长',p:'xiào zhǎng',m:'headmaster',e:'📦',en:true},
+    {h:'市长',p:'shì zhǎng',m:'mayor',e:'📦',en:true},
+    {h:'自行车',p:'zì xíng chē',m:'bicycle; bike',e:'📦',en:true},
+    {h:'相机',p:'xiàng jī',m:'at the opportune moment',e:'📦',en:true},
+    {h:'花园',p:'huā yuán',m:'garden',e:'📦',en:true},
+    {h:'影片',p:'yǐng piàn',m:'a copy of a film',e:'📦',en:true},
+    {h:'温度',p:'wēn dù',m:'temperature',e:'📦',en:true},
+    {h:'等于',p:'děng yú',m:'to equal',e:'⚡',en:true},
+    {h:'周年',p:'zhōu nián',m:'annual',e:'🔹',en:true},
+    {h:'节日',p:'jié rì',m:'holiday',e:'📦',en:true},
+    {h:'例如',p:'lì rú',m:'for example; for instance; such as',e:'⚡',en:true},
+    {h:'重视',p:'zhòng shì',m:'to attach importance to sth; to value',e:'⚡',en:true},
+    {h:'洗澡',p:'xǐ zǎo',m:'to bathe',e:'⚡',en:true},
+    {h:'今后',p:'jīn hòu',m:'hereafter',e:'⏰',en:true},
+    {h:'这时',p:'zhè shí',m:'at this time',e:'🙂',en:true},
+    {h:'大大',p:'dà dà',m:'uncle',e:'➡️',en:true},
+    {h:'科学家',p:'kē xué jiā',m:'scientist',e:'📦',en:true},
+    {h:'姓',p:'xìng',m:'family name',e:'⚡',en:true},
+    {h:'篮球',p:'lán qiú',m:'basketball',e:'📦',en:true},
+    {h:'晚餐',p:'wǎn cān',m:'dinner',e:'📦',en:true},
+    {h:'大门',p:'Dà mén',m:'the Doors, US rock band',e:'📦',en:true},
+    {h:'晚会',p:'wǎn huì',m:'evening party',e:'📦',en:true},
+    {h:'大小',p:'dà xiǎo',m:'size',e:'📦',en:true},
+    {h:'不一定',p:'bù yī dìng',m:'maybe',e:'📝',en:true},
+    {h:'少年',p:'shào nián',m:'youngster',e:'📦',en:true},
+    {h:'计算机',p:'jì suàn jī',m:'computer',e:'📦',en:true},
+    {h:'难受',p:'nán shòu',m:'to feel unwell',e:'🎨',en:true},
+    {h:'刻',p:'kè',m:'moment',e:'⚡',en:true},
+    {h:'参观',p:'cān guān',m:'to tour',e:'⚡',en:true},
+    {h:'太太',p:'tài tai',m:'Mrs.',e:'📦',en:true},
+    {h:'笔记本',p:'bǐ jì běn',m:'notebook (computing)',e:'📦',en:true},
+    {h:'对面',p:'duì miàn',m:'directly in front',e:'↗️',en:true},
+    {h:'信用卡',p:'xìn yòng kǎ',m:'credit card',e:'📦',en:true},
+    {h:'青少年',p:'qīng shào nián',m:'youth',e:'📦',en:true},
+    {h:'特点',p:'tè diǎn',m:'trait',e:'📦',en:true},
+    {h:'阴',p:'Yīn',m:'surname Yin',e:'🎨',en:true},
+    {h:'笑话',p:'xiào hua',m:'joke; jest',e:'📦',en:true},
+    {h:'凉',p:'Liáng',m:'the five Liang of the Sixteen Kingdoms, namely: Former Li…',e:'🎨',en:true},
+    {h:'平常',p:'píng cháng',m:'common',e:'🎨',en:true},
+    {h:'不但',p:'bù dàn',m:'not only (... but also ...)',e:'🔗',en:true},
+    {h:'半夜',p:'bàn yè',m:'midnight',e:'⏰',en:true},
+    {h:'商量',p:'shāng liang',m:'to consult',e:'⚡',en:true},
+    {h:'黄色',p:'huáng sè',m:'pornographic',e:'📦',en:true},
+    {h:'姓名',p:'xìng míng',m:'full name',e:'📦',en:true},
+    {h:'午餐',p:'wǔ cān',m:'lunch',e:'📦',en:true},
+    {h:'排队',p:'pái duì',m:'to line up',e:'⚡',en:true},
+    {h:'校园',p:'xiào yuán',m:'campus',e:'📦',en:true},
+    {h:'等到',p:'děng dào',m:'to wait until',e:'⚡',en:true},
+    {h:'一部分',p:'yī bù fen',m:'subset',e:'🔢',en:true},
+    {h:'爱人',p:'ài ren',m:'spouse (PRC)',e:'📦',en:true},
+    {h:'多数',p:'duō shù',m:'majority; most',e:'🔢',en:true},
+    {h:'西方',p:'Xī fāng',m:'the West',e:'📍',en:true},
+    {h:'春天',p:'chūn tiān',m:'spring (season)',e:'⏰',en:true},
+    {h:'超市',p:'chāo shì',m:'supermarket (abbr. for 超级市场)',e:'📦',en:true},
+    {h:'球场',p:'qiú chǎng',m:'court',e:'📦',en:true},
+    {h:'住院',p:'zhù yuàn',m:'to be in hospital',e:'⚡',en:true},
+    {h:'教学',p:'jiāo xué',m:'to teach (as a professor)',e:'⚡',en:true},
+    {h:'椅子',p:'yǐ zi',m:'chair',e:'📦',en:true},
+    {h:'座位',p:'zuò wèi',m:'seat',e:'📦',en:true},
+    {h:'忽然',p:'hū rán',m:'suddenly; all of a sudden',e:'➡️',en:true},
+    {h:'假期',p:'jià qī',m:'vacation',e:'⏰',en:true},
+    {h:'游客',p:'yóu kè',m:'tourist',e:'📦',en:true},
+    {h:'报名',p:'bào míng',m:'to apply',e:'⚡',en:true},
+    {h:'拿到',p:'ná dào',m:'to get',e:'⚡',en:true},
+    {h:'脏',p:'zàng',m:'viscera',e:'🎨',en:true},
+    {h:'全家',p:'quán jiā',m:'whole family',e:'📦',en:true},
+    {h:'从小',p:'cóng xiǎo',m:'from childhood',e:'➡️',en:true},
+    {h:'饱',p:'bǎo',m:'satisfied',e:'🎨',en:true},
+    {h:'一共',p:'yī gòng',m:'altogether',e:'➡️',en:true},
+    {h:'月亮',p:'yuè liang',m:'the moon',e:'📦',en:true},
+    {h:'公斤',p:'gōng jīn',m:'kilogram (kg)',e:'🔹',en:true},
+    {h:'北方',p:'běi fāng',m:'north',e:'📍',en:true},
+    {h:'平等',p:'píng děng',m:'equal',e:'🎨',en:true},
+    {h:'打工',p:'dǎ gōng',m:'to work a temporary or casual job',e:'⚡',en:true},
+    {h:'星星',p:'xīng xing',m:'(coll.) a star; the stars in the sky',e:'📦',en:true},
+    {h:'多云',p:'duō yún',m:'cloudy (meteorology)',e:'📝',en:true},
+    {h:'不满',p:'bù mǎn',m:'resentful',e:'🎨',en:true},
+    {h:'例子',p:'lì zi',m:'case',e:'📦',en:true},
+    {h:'教室',p:'jiào shì',m:'classroom',e:'📦',en:true},
+    {h:'快要',p:'kuài yào',m:'nearly at the point of (doing sth); about to (do sth)',e:'➡️',en:true},
+    {h:'东方',p:'Dōng fāng',m:'the East',e:'📍',en:true},
+    {h:'常见',p:'cháng jiàn',m:'common',e:'🎨',en:true},
+    {h:'商人',p:'shāng rén',m:'merchant',e:'📦',en:true},
+    {h:'少数',p:'shǎo shù',m:'few',e:'🔢',en:true},
+    {h:'走过',p:'zǒu guò',m:'to pass by',e:'⚡',en:true},
+    {h:'得出',p:'dé chū',m:'to obtain (a result); to arrive at (a conclusion)',e:'⚡',en:true},
+    {h:'起飞',p:'qǐ fēi',m:'(of an aircraft) to take off',e:'⚡',en:true},
+    {h:'网球',p:'wǎng qiú',m:'tennis',e:'📦',en:true},
+    {h:'停车场',p:'tíng chē chǎng',m:'car park',e:'📦',en:true},
+    {h:'大海',p:'dà hǎi',m:'sea',e:'📦',en:true},
+    {h:'做饭',p:'zuò fàn',m:'to cook',e:'⚡',en:true},
+    {h:'出租',p:'chū zū',m:'to rent',e:'⚡',en:true},
+    {h:'这时候',p:'zhè shíhòu',m:'At this moment',e:'🙂',en:true},
+    {h:'老是',p:'lǎo shi',m:'always',e:'➡️',en:true},
+    {h:'月份',p:'yuè fèn',m:'month',e:'⏰',en:true},
+    {h:'坏人',p:'huài rén',m:'villain',e:'📦',en:true},
+    {h:'天上',p:'tiān shàng',m:'heavenly',e:'📍',en:true},
+    {h:'旅客',p:'lǚ kè',m:'traveler; tourist',e:'📦',en:true},
+    {h:'大衣',p:'dà yī',m:'cloak',e:'📦',en:true},
+    {h:'学期',p:'xué qī',m:'term',e:'📦',en:true},
+    {h:'路边',p:'lù biān',m:'curb; roadside; wayside',e:'📍',en:true},
+    {h:'难题',p:'nán tí',m:'difficult problem',e:'📦',en:true},
+    {h:'入口',p:'rù kǒu',m:'entrance',e:'📦',en:true},
+    {h:'实习',p:'shí xí',m:'to intern',e:'⚡',en:true},
+    {h:'点头',p:'diǎn tóu',m:'to nod',e:'⚡',en:true},
+    {h:'手表',p:'shǒu biǎo',m:'wristwatch',e:'📦',en:true},
+    {h:'院长',p:'yuàn zhǎng',m:'dean',e:'📦',en:true},
+    {h:'东北',p:'Dōng běi',m:'Manchuria',e:'📍',en:true},
+    {h:'夜里',p:'yè li',m:'at night',e:'⏰',en:true},
+    {h:'音乐会',p:'yīn yuè huì',m:'concert',e:'📦',en:true},
+    {h:'中年',p:'zhōng nián',m:'middle age',e:'⏰',en:true},
+    {h:'院子',p:'yuàn zi',m:'yard',e:'📦',en:true},
+    {h:'找出',p:'zhǎo chū',m:'to find',e:'📝',en:true},
+    {h:'名称',p:'míng chēng',m:'name (of a thing)',e:'📦',en:true},
+    {h:'分数',p:'fēn shù',m:'mark',e:'📦',en:true},
+    {h:'瓶子',p:'píng zi',m:'bottle',e:'📦',en:true},
+    {h:'举手',p:'jǔ shǒu',m:'to raise a hand',e:'⚡',en:true},
+    {h:'复习',p:'fù xí',m:'revision',e:'⚡',en:true},
+    {h:'课堂',p:'kè táng',m:'classroom',e:'📦',en:true},
+    {h:'出国',p:'chū guó',m:'to go abroad; to leave the country',e:'⚡',en:true},
+    {h:'秋天',p:'qiū tiān',m:'autumn',e:'⏰',en:true},
+    {h:'护照',p:'hù zhào',m:'passport',e:'📦',en:true},
+    {h:'下雪',p:'xià xuě',m:'to snow',e:'⚡',en:true},
+    {h:'英文',p:'Yīng wén',m:'English (language)',e:'📦',en:true},
+    {h:'气温',p:'qì wēn',m:'air temperature',e:'📦',en:true},
+    {h:'画家',p:'huà jiā',m:'painter',e:'📦',en:true},
+    {h:'骑车',p:'qí chē',m:'to ride a bike (motorbike or bicycle)',e:'⚡',en:true},
+    {h:'西南',p:'xī nán',m:'southwest',e:'📍',en:true},
+    {h:'西北',p:'Xī běi',m:'Northwest China',e:'📍',en:true},
+    {h:'海边',p:'hǎi biān',m:'coast',e:'📍',en:true},
+    {h:'住房',p:'zhù fáng',m:'housing',e:'📦',en:true},
+    {h:'出院',p:'chū yuàn',m:'to leave hospital',e:'⚡',en:true},
+    {h:'体育馆',p:'tǐ yù guǎn',m:'gym',e:'📦',en:true},
+    {h:'老朋友',p:'lǎo péng you',m:'old friend',e:'📦',en:true},
+    {h:'菜单',p:'cài dān',m:'menu',e:'📦',en:true},
+    {h:'年级',p:'nián jí',m:'grade',e:'📦',en:true},
+    {h:'走开',p:'zǒu kāi',m:'to leave',e:'⚡',en:true},
+    {h:'笔记',p:'bǐ jì',m:'notes',e:'📦',en:true},
+    {h:'外地',p:'wài dì',m:'parts of the country other than where one is',e:'📍',en:true},
+    {h:'休假',p:'xiū jià',m:'to go on vacation; to have a holiday; to take leave',e:'⚡',en:true},
+    {h:'小声',p:'xiǎo shēng',m:'in a low voice',e:'⚡',en:true},
+    {h:'大自然',p:'dà zì rán',m:'nature (the natural world)',e:'📦',en:true},
+    {h:'送到',p:'sòng dào',m:'Deliver',e:'⚡',en:true},
+    {h:'打印',p:'dǎ yìn',m:'to stamp',e:'⚡',en:true},
+    {h:'斤',p:'jīn',m:'catty',e:'🔹',en:true},
+    {h:'老年',p:'lǎo nián',m:'elderly',e:'⏰',en:true},
+    {h:'照相',p:'zhào xiàng',m:'to take a photograph',e:'⚡',en:true},
+    {h:'动物园',p:'dòng wù yuán',m:'zoo',e:'📦',en:true},
+    {h:'草地',p:'cǎo dì',m:'sod',e:'📦',en:true},
+    {h:'药店',p:'yào diàn',m:'pharmacy',e:'📦',en:true},
+    {h:'回国',p:'huí guó',m:'to return to one\'s home country',e:'⚡',en:true},
+    {h:'关机',p:'guān jī',m:'to finish shooting a film',e:'⚡',en:true},
+    {h:'晴',p:'qíng',m:'clear',e:'⚡',en:true},
+    {h:'班长',p:'bān zhǎng',m:'team leader',e:'📦',en:true},
+    {h:'常用',p:'cháng yòng',m:'in common usage',e:'🎨',en:true},
+    {h:'里头',p:'lǐ tou',m:'inside',e:'↗️',en:true},
+    {h:'请客',p:'qǐng kè',m:'to entertain guests',e:'⚡',en:true},
+    {h:'日报',p:'rì bào',m:'daily newspaper',e:'📦',en:true},
+    {h:'行人',p:'xíng rén',m:'passer-by',e:'📦',en:true},
+    {h:'开学',p:'kāi xué',m:'school opening',e:'⚡',en:true},
+    {h:'走进',p:'zǒu jìn',m:'to enter',e:'⚡',en:true},
+    {h:'洗衣机',p:'xǐ yī jī',m:'washing machine; washer',e:'📦',en:true},
+    {h:'词语',p:'cí yǔ',m:'expression',e:'📦',en:true},
+    {h:'句子',p:'jù zi',m:'sentence',e:'📦',en:true},
+    {h:'筷子',p:'kuài zi',m:'chopsticks',e:'📦',en:true},
+    {h:'体育场',p:'tǐ yù chǎng',m:'stadium',e:'📦',en:true},
+    {h:'组长',p:'zǔ zhǎng',m:'group leader',e:'📦',en:true},
+    {h:'作文',p:'zuò wén',m:'to write an essay',e:'📦',en:true},
+    {h:'东南',p:'dōng nán',m:'southeast',e:'↗️',en:true},
+    {h:'个子',p:'gè zi',m:'size',e:'📦',en:true},
+    {h:'难看',p:'nán kàn',m:'ugly',e:'🎨',en:true},
+    {h:'有点儿',p:'yǒu diǎn r',m:'slightly',e:'📝',en:true},
+    {h:'地铁站',p:'dì tiě zhàn',m:'subway station',e:'📦',en:true},
+    {h:'快餐',p:'kuài cān',m:'snack',e:'📦',en:true},
+    {h:'站住',p:'zhàn zhù',m:'to stand',e:'⚡',en:true},
+    {h:'饺子',p:'jiǎo zi',m:'dumpling',e:'📦',en:true},
+    {h:'开机',p:'kāi jī',m:'to start an engine',e:'⚡',en:true},
+    {h:'公共汽车',p:'gōng gòng qì chē',m:'bus',e:'📝',en:true},
+    {h:'碰见',p:'pèng jiàn',m:'to run into',e:'⚡',en:true},
+    {h:'字典',p:'zì diǎn',m:'(coll.) dictionary',e:'📦',en:true},
+    {h:'排球',p:'pái qiú',m:'volleyball',e:'📦',en:true},
+    {h:'干杯',p:'gān bēi',m:'Bottoms up!',e:'⚡',en:true},
+    {h:'过年',p:'guò nián',m:'to celebrate the Chinese New Year',e:'⚡',en:true},
+    {h:'零下',p:'líng xià',m:'below zero',e:'📍',en:true},
+    {h:'拿出',p:'ná chū',m:'to put out',e:'⚡',en:true},
+    {h:'中餐',p:'zhōng cān',m:'lunch',e:'📦',en:true},
+    {h:'晴天',p:'qíng tiān',m:'clear sky',e:'📦',en:true},
+    {h:'普通话',p:'pǔ tōng huà',m:'ordinary speech',e:'📦',en:true},
+    {h:'全年',p:'quán nián',m:'all year long',e:'📦',en:true},
+    {h:'爬山',p:'pá shān',m:'hiking',e:'⚡',en:true},
+    {h:'那会儿',p:'nà huì r',m:'also pr. [nèi huì r]',e:'🙂',en:true},
+    {h:'黑板',p:'hēi bǎn',m:'blackboard',e:'📦',en:true},
+    {h:'外卖',p:'wài mài',m:'takeout (meal)',e:'📝',en:true},
+    {h:'方便面',p:'fāng biàn miàn',m:'instant noodles',e:'📦',en:true},
+    {h:'饭馆',p:'fàn guǎn',m:'restaurant',e:'📦',en:true},
+    {h:'球鞋',p:'qiú xié',m:'athletic shoes',e:'📦',en:true},
+    {h:'流利',p:'liú lì',m:'fluent',e:'🎨',en:true},
+    {h:'交朋友',p:'jiāo péng you',m:'to make friends',e:'⚡',en:true},
+    {h:'一路顺风',p:'yī lù shùn fēng',m:'to have a pleasant journey (idiom)',e:'⚡',en:true},
+    {h:'晚报',p:'wǎn bào',m:'evening newspaper',e:'📦',en:true},
+    {h:'难听',p:'nán tīng',m:'coarse',e:'🎨',en:true},
+    {h:'药水',p:'Yào shuǐ',m:'Yaksu in North Korea, near the border with Liaoning and J…',e:'📦',en:true},
+    {h:'中医',p:'Zhōng yī',m:'traditional Chinese medical science',e:'📦',en:true},
+    {h:'坏处',p:'huài chu',m:'harm',e:'📦',en:true},
+    {h:'前年',p:'qián nián',m:'the year before last',e:'⏰',en:true},
+    {h:'词典',p:'cí diǎn',m:'dictionary',e:'📦',en:true},
+    {h:'千克',p:'qiān kè',m:'kilogram',e:'🔹',en:true},
+    {h:'问路',p:'wèn lù',m:'to ask for directions',e:'⚡',en:true},
+    {h:'叫作',p:'jiào zuò',m:'to call',e:'⚡',en:true},
+    {h:'凉快',p:'liáng kuai',m:'nice and cold',e:'🎨',en:true},
+    {h:'午睡',p:'wǔ shuì',m:'siesta',e:'⚡',en:true},
+    {h:'药片',p:'yào piàn',m:'a (medicine) pill or tablet',e:'📦',en:true},
+    {h:'音节',p:'yīn jié',m:'syllable',e:'📦',en:true},
+    {h:'中级',p:'zhōng jí',m:'middle level (in a hierarchy)',e:'📝',en:true},
+    {h:'一点点',p:'yī diǎn diǎn',m:'a little bit',e:'⏰',en:true},
+    {h:'春节',p:'Chūn jié',m:'Spring Festival (Chinese New Year)',e:'⏰',en:true},
+    {h:'留学生',p:'liú xué shēng',m:'student studying abroad',e:'📦',en:true},
+    {h:'阴天',p:'yīn tiān',m:'cloudy day; overcast sky',e:'📦',en:true},
+    {h:'西医',p:'xī yī',m:'Western medicine',e:'📦',en:true},
+    {h:'听讲',p:'tīng jiǎng',m:'to attend a lecture',e:'⚡',en:true},
+    {h:'考生',p:'kǎo shēng',m:'exam candidate',e:'📦',en:true},
+    {h:'读音',p:'dú yīn',m:'pronunciation',e:'📦',en:true},
+    {h:'中小学',p:'zhōng xiǎo xué',m:'middle and elementary school',e:'📦',en:true},
+    {h:'西餐',p:'xī cān',m:'Western-style food',e:'📦',en:true},
+    {h:'一路平安',p:'yī lù píng ān',m:'Bon voyage!',e:'📝',en:true},
+    {h:'不一会儿',p:'bù yīhuǐr5',m:'Take a short while',e:'📝',en:true},
+    {h:'干活儿',p:'gàn huó r',m:'(coll.) to work',e:'⚡',en:true},
+    {h:'不太',p:'bù tài',m:'Not too',e:'👤',en:true},
+    {h:'生词',p:'shēng cí',m:'new word (in textbook)',e:'📦',en:true},
+    {h:'画儿',p:'huà r',m:'picture',e:'📝',en:true},
+    {h:'短信',p:'duǎn xìn',m:'SMS',e:'📝',en:true},
+    {h:'公交车',p:'gōng jiāo chē',m:'town bus',e:'📝',en:true},
+    {h:'见过',p:'jiànguò',m:'seen',e:'📝',en:true},
+    {h:'快点儿',p:'kuài diǎn r',m:'Hurry up!',e:'📝',en:true},
+    {h:'那时候',p:'nà shí hou',m:'at that time',e:'📝',en:true},
+    {h:'挺好',p:'tǐng hǎo',m:'very good',e:'📝',en:true},
+    {h:'下周',p:'xià zhōu',m:'next week',e:'📝',en:true},
+    {h:'笑话儿',p:'xiàohuar5',m:'Joke',e:'📝',en:true},
+    {h:'银行卡',p:'yín háng kǎ',m:'ATM card',e:'📝',en:true},
+    {h:'有空儿',p:'yǒukòngr5',m:'available',e:'📝',en:true},
+    {h:'有一点儿',p:'yǒu yī diǎn r',m:'a bit',e:'📝',en:true},
+  ],
+  3: [
+    {h:'把',p:'bǎ',m:'handlebar',e:'📌',en:true},
+    {h:'被',p:'bèi',m:'quilt',e:'📌',en:true},
+    {h:'就是',p:'jiù shì',m:'exactly; precisely',e:'⚡',en:true},
+    {h:'时',p:'shí',m:'old variant of 时',e:'⏰',en:true},
+    {h:'需要',p:'xū yào',m:'needs',e:'⚡',en:true},
+    {h:'开始',p:'kāi shǐ',m:'initial',e:'⚡',en:true},
+    {h:'并',p:'bìng',m:'and',e:'➡️',en:true},
+    {h:'所',p:'suǒ',m:'place',e:'🔤',en:true},
+    {h:'死',p:'sǐ',m:'rigid',e:'⚡',en:true},
+    {h:'种',p:'zhǒng',m:'seed',e:'🔹',en:true},
+    {h:'希望',p:'xī wàng',m:'to hope',e:'⚡',en:true},
+    {h:'发生',p:'fā shēng',m:'to happen; to occur; to take place; to break out',e:'⚡',en:true},
+    {h:'为了',p:'wèi le',m:'for; for the purpose of; in order to',e:'📌',en:true},
+    {h:'只是',p:'zhǐ shì',m:'simply',e:'➡️',en:true},
+    {h:'世界',p:'shì jiè',m:'world',e:'📦',en:true},
+    {h:'情况',p:'qíng kuàng',m:'circumstances; state of affairs; situation',e:'📦',en:true},
+    {h:'比赛',p:'bǐ sài',m:'match',e:'⚡',en:true},
+    {h:'继续',p:'jì xù',m:'to continue',e:'⚡',en:true},
+    {h:'心',p:'xīn',m:'mind',e:'📦',en:true},
+    {h:'已',p:'yǐ',m:'then',e:'➡️',en:true},
+    {h:'张',p:'Zhāng',m:'surname Zhang',e:'🔹',en:true},
+    {h:'关系',p:'guān xi',m:'guanxi',e:'📦',en:true},
+    {h:'内',p:'nèi',m:'inner',e:'↗️',en:true},
+    {h:'总',p:'zǒng',m:'surely',e:'➡️',en:true},
+    {h:'每',p:'měi',m:'each',e:'🙂',en:true},
+    {h:'美',p:'Měi',m:'(bound form) USA (abbr. for 美国)',e:'🎨',en:true},
+    {h:'一切',p:'yī qiè',m:'all',e:'🙂',en:true},
+    {h:'由',p:'yóu',m:'from',e:'📌',en:true},
+    {h:'任何',p:'rèn hé',m:'any',e:'🙂',en:true},
+    {h:'决定',p:'jué dìng',m:'decision',e:'⚡',en:true},
+    {h:'只有',p:'zhǐ yǒu',m:'only have ...',e:'🔗',en:true},
+    {h:'如何',p:'rú hé',m:'how',e:'🙂',en:true},
+    {h:'受',p:'shòu',m:'to bear',e:'⚡',en:true},
+    {h:'使',p:'shǐ',m:'envoy',e:'⚡',en:true},
+    {h:'其实',p:'qí shí',m:'actually; in fact; really',e:'➡️',en:true},
+    {h:'连',p:'Lián',m:'surname Lian',e:'🔤',en:true},
+    {h:'当然',p:'dāng rán',m:'certainly',e:'➡️',en:true},
+    {h:'部',p:'bù',m:'part',e:'🔹',en:true},
+    {h:'消息',p:'xiāo xi',m:'news',e:'📦',en:true},
+    {h:'表现',p:'biǎo xiàn',m:'show',e:'⚡',en:true},
+    {h:'解决',p:'jiě jué',m:'to solve; to resolve; to settle (a problem)',e:'⚡',en:true},
+    {h:'成功',p:'Chéng gōng',m:'Chenggong or Chengkung town in Taitung County 台东县, southe…',e:'🎨',en:true},
+    {h:'结束',p:'jié shù',m:'to end',e:'⚡',en:true},
+    {h:'者',p:'zhě',m:'-er',e:'🙂',en:true},
+    {h:'转',p:'zhuǎi',m:'see 转文',e:'⚡',en:true},
+    {h:'调查',p:'diào chá',m:'survey',e:'⚡',en:true},
+    {h:'方式',p:'fāng shì',m:'way; manner; style; mode; pattern',e:'📦',en:true},
+    {h:'美元',p:'Měi yuán',m:'US dollar',e:'🔹',en:true},
+    {h:'处理',p:'chǔ lǐ',m:'to punish',e:'⚡',en:true},
+    {h:'强',p:'Qiáng',m:'surname Qiang',e:'🎨',en:true},
+    {h:'能力',p:'néng lì',m:'ability',e:'📦',en:true},
+    {h:'保护',p:'bǎo hù',m:'to defend',e:'⚡',en:true},
+    {h:'管',p:'guǎn',m:'variant of 管',e:'⚡',en:true},
+    {h:'支持',p:'zhī chí',m:'to back',e:'⚡',en:true},
+    {h:'注意',p:'zhù yì',m:'to take note of; to pay attention to',e:'⚡',en:true},
+    {h:'活',p:'huó',m:'work',e:'⚡',en:true},
+    {h:'拍',p:'pāi',m:'to pat',e:'⚡',en:true},
+    {h:'整个',p:'zhěng gè',m:'whole',e:'🔢',en:true},
+    {h:'极了',p:'jí le',m:'extremely',e:'🔤',en:true},
+    {h:'保证',p:'bǎo zhèng',m:'guarantee',e:'⚡',en:true},
+    {h:'根本',p:'gēn běn',m:'root',e:'➡️',en:true},
+    {h:'城市',p:'chéng shì',m:'city; town',e:'📦',en:true},
+    {h:'目前',p:'mù qián',m:'currently',e:'⏰',en:true},
+    {h:'游戏',p:'yóu xì',m:'game',e:'📦',en:true},
+    {h:'马',p:'Mǎ',m:'surname Ma',e:'📦',en:true},
+    {h:'比较',p:'bǐ jiào',m:'quite',e:'➡️',en:true},
+    {h:'存在',p:'cún zài',m:'to be',e:'⚡',en:true},
+    {h:'终于',p:'zhōng yú',m:'at last',e:'➡️',en:true},
+    {h:'现场',p:'xiàn chǎng',m:'(on) the spot',e:'📍',en:true},
+    {h:'下来',p:'xià lai',m:'to come down',e:'⚡',en:true},
+    {h:'个人',p:'gè rén',m:'oneself',e:'📦',en:true},
+    {h:'除了',p:'chú le',m:'besides',e:'📌',en:true},
+    {h:'区',p:'Oū',m:'surname Ou',e:'📦',en:true},
+    {h:'总是',p:'zǒng shì',m:'always',e:'➡️',en:true},
+    {h:'指',p:'zhǐ',m:'finger',e:'⚡',en:true},
+    {h:'精神',p:'jīng shén',m:'mind',e:'📦',en:true},
+    {h:'双',p:'Shuāng',m:'surname Shuang',e:'🔢',en:true},
+    {h:'保持',p:'bǎo chí',m:'to keep',e:'⚡',en:true},
+    {h:'代表',p:'dài biǎo',m:'delegate',e:'📦',en:true},
+    {h:'突然',p:'tū rán',m:'sudden; abrupt; unexpected',e:'🎨',en:true},
+    {h:'里面',p:'lǐ miàn',m:'inside',e:'↗️',en:true},
+    {h:'确定',p:'què dìng',m:'fixed',e:'⚡',en:true},
+    {h:'目标',p:'mù biāo',m:'goal',e:'📦',en:true},
+    {h:'任务',p:'rèn wu',m:'mission; assignment; task; duty; role',e:'📦',en:true},
+    {h:'容易',p:'róng yì',m:'easy; straightforward',e:'🎨',en:true},
+    {h:'联系',p:'lián xì',m:'variant of 联系',e:'⚡',en:true},
+    {h:'合作',p:'hé zuò',m:'cooperation',e:'⚡',en:true},
+    {h:'因此',p:'yīn cǐ',m:'thus; consequently; as a result',e:'🔗',en:true},
+    {h:'人员',p:'rén yuán',m:'crew',e:'📦',en:true},
+    {h:'按',p:'àn',m:'to push',e:'📌',en:true},
+    {h:'线',p:'xiàn',m:'variant of 线',e:'📦',en:true},
+    {h:'报告',p:'bào gào',m:'talk',e:'📦',en:true},
+    {h:'台',p:'Tái',m:'Taiwan (abbr.)',e:'🔹',en:true},
+    {h:'生命',p:'shēng mìng',m:'living being; creature',e:'📦',en:true},
+    {h:'明显',p:'míng xiǎn',m:'clear',e:'🎨',en:true},
+    {h:'伤',p:'shāng',m:'wound',e:'⚡',en:true},
+    {h:'曾经',p:'céng jīng',m:'once',e:'➡️',en:true},
+    {h:'另外',p:'lìng wài',m:'other',e:'🙂',en:true},
+    {h:'简单',p:'jiǎn dān',m:'simple',e:'🎨',en:true},
+    {h:'血',p:'xuè',m:'blood',e:'📦',en:true},
+    {h:'到底',p:'dào dǐ',m:'finally',e:'➡️',en:true},
+    {h:'绝对',p:'jué duì',m:'absolute',e:'➡️',en:true},
+    {h:'坚持',p:'jiān chí',m:'to insist on',e:'⚡',en:true},
+    {h:'派',p:'pài',m:'group',e:'⚡',en:true},
+    {h:'好好',p:'hǎo hǎo',m:'well',e:'➡️',en:true},
+    {h:'技术',p:'jì shù',m:'technology; technique; skill',e:'📦',en:true},
+    {h:'设计',p:'shè jì',m:'design; plan',e:'⚡',en:true},
+    {h:'利用',p:'lì yòng',m:'to use',e:'⚡',en:true},
+    {h:'性',p:'xìng',m:'sex',e:'📦',en:true},
+    {h:'建议',p:'jiàn yì',m:'to propose; to suggest; to recommend',e:'📦',en:true},
+    {h:'各位',p:'gè wèi',m:'everybody',e:'🙂',en:true},
+    {h:'约',p:'yāo',m:'to weigh in a balance or on a scale',e:'➡️',en:true},
+    {h:'抓',p:'zhuā',m:'to grab',e:'⚡',en:true},
+    {h:'光',p:'guāng',m:'light; ray',e:'📦',en:true},
+    {h:'意义',p:'yì yì',m:'sense',e:'📦',en:true},
+    {h:'父亲',p:'fù qīn',m:'father',e:'📦',en:true},
+    {h:'并且',p:'bìng qiě',m:'and',e:'🔗',en:true},
+    {h:'金',p:'Jīn',m:'surname Jin',e:'👤',en:true},
+    {h:'社会',p:'shè huì',m:'society',e:'📦',en:true},
+    {h:'下去',p:'xià qù',m:'to go on',e:'⚡',en:true},
+    {h:'证明',p:'zhèng míng',m:'proof',e:'⚡',en:true},
+    {h:'记者',p:'jì zhě',m:'reporter; journalist',e:'📦',en:true},
+    {h:'确实',p:'què shí',m:'real',e:'🎨',en:true},
+    {h:'力',p:'Lì',m:'surname Li',e:'📦',en:true},
+    {h:'发展',p:'fā zhǎn',m:'growth',e:'⚡',en:true},
+    {h:'谈',p:'Tán',m:'surname Tan',e:'⚡',en:true},
+    {h:'至少',p:'zhì shǎo',m:'at least',e:'➡️',en:true},
+    {h:'负责',p:'fù zé',m:'conscientious',e:'⚡',en:true},
+    {h:'首先',p:'shǒu xiān',m:'first (of all)',e:'➡️',en:true},
+    {h:'交易',p:'jiāo yì',m:'transaction; deal',e:'📦',en:true},
+    {h:'理解',p:'lǐ jiě',m:'to comprehend; to understand',e:'⚡',en:true},
+    {h:'报道',p:'bào dào',m:'report',e:'⚡',en:true},
+    {h:'父母',p:'fù mǔ',m:'father and mother; parents',e:'📦',en:true},
+    {h:'城',p:'chéng',m:'city',e:'📦',en:true},
+    {h:'安排',p:'ān pái',m:'plans',e:'⚡',en:true},
+    {h:'力量',p:'lì liang',m:'power',e:'📦',en:true},
+    {h:'敢',p:'gǎn',m:'daring',e:'⚡',en:true},
+    {h:'造成',p:'zào chéng',m:'to cause',e:'⚡',en:true},
+    {h:'某',p:'mǒu',m:'some',e:'🙂',en:true},
+    {h:'随',p:'Suí',m:'surname Sui',e:'📌',en:true},
+    {h:'支',p:'Zhī',m:'surname Zhi',e:'🔹',en:true},
+    {h:'人生',p:'rén shēng',m:'life (one\'s time on earth)',e:'📦',en:true},
+    {h:'会议',p:'huì yì',m:'meeting',e:'📦',en:true},
+    {h:'幸福',p:'xìng fú',m:'happy',e:'🎨',en:true},
+    {h:'自然',p:'zì rán',m:'nature',e:'📦',en:true},
+    {h:'责任',p:'zé rèn',m:'duty',e:'📦',en:true},
+    {h:'失去',p:'shī qù',m:'to lose',e:'⚡',en:true},
+    {h:'赢',p:'yíng',m:'to win',e:'⚡',en:true},
+    {h:'报',p:'bào',m:'report',e:'📦',en:true},
+    {h:'人民',p:'rén mín',m:'the people',e:'📦',en:true},
+    {h:'步',p:'Bù',m:'surname Bu',e:'🔹',en:true},
+    {h:'面对',p:'miàn duì',m:'to face; to confront',e:'⚡',en:true},
+    {h:'事件',p:'shì jiàn',m:'event',e:'📦',en:true},
+    {h:'压力',p:'yā lì',m:'pressure',e:'📦',en:true},
+    {h:'结婚',p:'jié hūn',m:'to marry',e:'⚡',en:true},
+    {h:'由于',p:'yóu yú',m:'since',e:'📌',en:true},
+    {h:'母亲',p:'mǔ qīn',m:'mother',e:'📦',en:true},
+    {h:'同意',p:'tóng yì',m:'to agree',e:'⚡',en:true},
+    {h:'训练',p:'xùn liàn',m:'to train',e:'⚡',en:true},
+    {h:'部门',p:'bù mén',m:'branch',e:'📦',en:true},
+    {h:'过程',p:'guò chéng',m:'process',e:'📦',en:true},
+    {h:'深',p:'shēn',m:'old variant of 深',e:'🎨',en:true},
+    {h:'各',p:'gè',m:'each',e:'🙂',en:true},
+    {h:'选手',p:'xuǎn shǒu',m:'athlete',e:'📦',en:true},
+    {h:'仍然',p:'réng rán',m:'still; as before; yet',e:'➡️',en:true},
+    {h:'显示',p:'xiǎn shì',m:'to show',e:'⚡',en:true},
+    {h:'属于',p:'shǔ yú',m:'to belong to',e:'⚡',en:true},
+    {h:'值得',p:'zhí de',m:'to deserve',e:'⚡',en:true},
+    {h:'人类',p:'rén lèi',m:'mankind',e:'📦',en:true},
+    {h:'亲',p:'qīn',m:'pro-',e:'⚡',en:true},
+    {h:'经历',p:'jīng lì',m:'experience',e:'⚡',en:true},
+    {h:'仍',p:'réng',m:'to remain',e:'➡️',en:true},
+    {h:'紧张',p:'jǐn zhāng',m:'tense',e:'🎨',en:true},
+    {h:'仅',p:'jǐn',m:'only',e:'➡️',en:true},
+    {h:'挂',p:'guà',m:'to die',e:'⚡',en:true},
+    {h:'事实',p:'shì shí',m:'fact',e:'📦',en:true},
+    {h:'本来',p:'běn lái',m:'original',e:'➡️',en:true},
+    {h:'基本',p:'jī běn',m:'main',e:'🎨',en:true},
+    {h:'类',p:'lèi',m:'kind',e:'🔹',en:true},
+    {h:'专家',p:'zhuān jiā',m:'expert; specialist',e:'📦',en:true},
+    {h:'跳',p:'tiào',m:'to hop',e:'⚡',en:true},
+    {h:'久',p:'jiǔ',m:'(long) time',e:'🎨',en:true},
+    {h:'以来',p:'yǐ lái',m:'since (a previous event)',e:'↗️',en:true},
+    {h:'反应',p:'fǎn yìng',m:'reply',e:'⚡',en:true},
+    {h:'地区',p:'dì qū',m:'area',e:'📦',en:true},
+    {h:'关注',p:'guān zhù',m:'concern',e:'⚡',en:true},
+    {h:'表演',p:'biǎo yǎn',m:'play',e:'⚡',en:true},
+    {h:'警察',p:'jǐng chá',m:'police; police officer',e:'📦',en:true},
+    {h:'价值',p:'jià zhí',m:'value',e:'📦',en:true},
+    {h:'相当',p:'xiāng dāng',m:'quite',e:'➡️',en:true},
+    {h:'困难',p:'kùn nan',m:'difficult',e:'🎨',en:true},
+    {h:'专业',p:'zhuān yè',m:'major',e:'📦',en:true},
+    {h:'难道',p:'nán dào',m:'don\'t tell me ...',e:'➡️',en:true},
+    {h:'牛',p:'Niú',m:'surname Niu',e:'📦',en:true},
+    {h:'规定',p:'guī dìng',m:'regulations; rules; provisions; stipulations',e:'📦',en:true},
+    {h:'产生',p:'chǎn shēng',m:'to arise; to come into being; to come about',e:'⚡',en:true},
+    {h:'对方',p:'duì fāng',m:'the other person; the other side; the other party',e:'📦',en:true},
+    {h:'状态',p:'zhuàng tài',m:'condition; state; state of affairs',e:'📦',en:true},
+    {h:'群',p:'qún',m:'variant of 群',e:'🔹',en:true},
+    {h:'照',p:'zhào',m:'to shine',e:'⚡',en:true},
+    {h:'环境',p:'huán jìng',m:'ambient',e:'📦',en:true},
+    {h:'火',p:'Huǒ',m:'surname Huo',e:'📦',en:true},
+    {h:'建立',p:'jiàn lì',m:'to found',e:'⚡',en:true},
+    {h:'更加',p:'gèng jiā',m:'even more',e:'➡️',en:true},
+    {h:'老板',p:'lǎo bǎn',m:'variant of 老板',e:'📦',en:true},
+    {h:'市场',p:'shì chǎng',m:'marketplace',e:'📦',en:true},
+    {h:'必要',p:'bì yào',m:'required',e:'🎨',en:true},
+    {h:'祝',p:'Zhù',m:'surname Zhu',e:'⚡',en:true},
+    {h:'危险',p:'wēi xiǎn',m:'danger',e:'🎨',en:true},
+    {h:'管理',p:'guǎn lǐ',m:'to manage',e:'⚡',en:true},
+    {h:'乱',p:'luàn',m:'riot',e:'➡️',en:true},
+    {h:'适合',p:'shì hé',m:'to fit; to suit',e:'⚡',en:true},
+    {h:'正式',p:'zhèng shì',m:'formal; official',e:'🎨',en:true},
+    {h:'救',p:'jiù',m:'variant of 救',e:'⚡',en:true},
+    {h:'从来',p:'cóng lái',m:'always',e:'➡️',en:true},
+    {h:'图',p:'tú',m:'map',e:'📦',en:true},
+    {h:'实际上',p:'shí jì shàng',m:'in fact',e:'➡️',en:true},
+    {h:'达到',p:'dá dào',m:'to reach; to achieve; to attain',e:'⚡',en:true},
+    {h:'现实',p:'xiàn shí',m:'real',e:'📦',en:true},
+    {h:'不断',p:'bù duàn',m:'constant',e:'➡️',en:true},
+    {h:'媒体',p:'méi tǐ',m:'media, esp. news media',e:'📦',en:true},
+    {h:'内容',p:'nèi róng',m:'content',e:'📦',en:true},
+    {h:'上面',p:'shàng miàn',m:'on top of',e:'↗️',en:true},
+    {h:'痛',p:'tòng',m:'ache',e:'🎨',en:true},
+    {h:'感情',p:'gǎn qíng',m:'emotion',e:'📦',en:true},
+    {h:'观众',p:'guān zhòng',m:'audience',e:'📦',en:true},
+    {h:'变化',p:'biàn huà',m:'change; variation',e:'⚡',en:true},
+    {h:'美丽',p:'měi lì',m:'beautiful',e:'🎨',en:true},
+    {h:'追',p:'duī',m:'to carve',e:'⚡',en:true},
+    {h:'经验',p:'jīng yàn',m:'experience',e:'📦',en:true},
+    {h:'集中',p:'jí zhōng',m:'to focus',e:'⚡',en:true},
+    {h:'破',p:'pò',m:'lousy',e:'⚡',en:true},
+    {h:'理由',p:'lǐ yóu',m:'reason',e:'📦',en:true},
+    {h:'刀',p:'Dāo',m:'surname Dao',e:'📦',en:true},
+    {h:'感受',p:'gǎn shòu',m:'to sense',e:'⚡',en:true},
+    {h:'完美',p:'wán měi',m:'perfect',e:'🎨',en:true},
+    {h:'直到',p:'zhí dào',m:'until',e:'⚡',en:true},
+    {h:'传',p:'chuán',m:'to spread',e:'⚡',en:true},
+    {h:'真实',p:'zhēn shí',m:'true; real',e:'🎨',en:true},
+    {h:'后面',p:'hòu mian',m:'later; afterwards',e:'↗️',en:true},
+    {h:'错误',p:'cuò wù',m:'error; mistake',e:'📦',en:true},
+    {h:'记录',p:'jì lù',m:'to record',e:'📦',en:true},
+    {h:'整',p:'zhěng',m:'whole',e:'🔢',en:true},
+    {h:'标准',p:'biāo zhǔn',m:'(adjective) standard',e:'📦',en:true},
+    {h:'职业',p:'zhí yè',m:'professional',e:'📦',en:true},
+    {h:'精彩',p:'jīng cǎi',m:'wonderful',e:'🎨',en:true},
+    {h:'朝',p:'Cháo',m:'abbr. for 朝鲜 Korea',e:'📌',en:true},
+    {h:'值',p:'zhí',m:'value',e:'⚡',en:true},
+    {h:'范围',p:'fàn wéi',m:'range',e:'📦',en:true},
+    {h:'事业',p:'shì yè',m:'career',e:'📦',en:true},
+    {h:'痛苦',p:'tòng kǔ',m:'pain',e:'🎨',en:true},
+    {h:'速度',p:'sù dù',m:'rate',e:'📦',en:true},
+    {h:'文件',p:'wén jiàn',m:'file',e:'📦',en:true},
+    {h:'空',p:'kōng',m:'air',e:'🎨',en:true},
+    {h:'显然',p:'xiǎn rán',m:'clearly; evidently; obviously',e:'🎨',en:true},
+    {h:'左右',p:'zuǒ yòu',m:'nearby',e:'🔢',en:true},
+    {h:'外面',p:'wài miàn',m:'surface',e:'↗️',en:true},
+    {h:'效果',p:'xiào guǒ',m:'result',e:'📦',en:true},
+    {h:'状况',p:'zhuàng kuàng',m:'condition; state; situation',e:'📦',en:true},
+    {h:'架',p:'jià',m:'rack',e:'🔹',en:true},
+    {h:'经济',p:'jīng jì',m:'economy',e:'📦',en:true},
+    {h:'按照',p:'àn zhào',m:'according to',e:'📌',en:true},
+    {h:'有效',p:'yǒu xiào',m:'valid',e:'🎨',en:true},
+    {h:'反对',p:'fǎn duì',m:'to oppose; to be against; to object to',e:'⚡',en:true},
+    {h:'作品',p:'zuò pǐn',m:'opus',e:'📦',en:true},
+    {h:'室',p:'Shì',m:'surname Shi',e:'📦',en:true},
+    {h:'时代',p:'Shí dài',m:'Time, US weekly news magazine',e:'📦',en:true},
+    {h:'伟大',p:'wěi dà',m:'huge; great; grand; worthy of the greatest admiration',e:'🎨',en:true},
+    {h:'哈哈',p:'hā hā',m:'(onom.) laughing out loud',e:'🔊',en:true},
+    {h:'准',p:'zhǔn',m:'to allow',e:'🎨',en:true},
+    {h:'输',p:'shū',m:'to lose; to be beaten',e:'⚡',en:true},
+    {h:'充满',p:'chōng mǎn',m:'full of',e:'⚡',en:true},
+    {h:'皮',p:'Pí',m:'surname Pi',e:'📦',en:true},
+    {h:'要是',p:'yào shi',m:'(coll.) if',e:'🔗',en:true},
+    {h:'系',p:'xì',m:'to bind',e:'⚡',en:true},
+    {h:'增加',p:'zēng jiā',m:'to raise',e:'⚡',en:true},
+    {h:'直',p:'Zhí',m:'surname Zhi',e:'➡️',en:true},
+    {h:'成员',p:'chéng yuán',m:'member',e:'📦',en:true},
+    {h:'保险',p:'bǎo xiǎn',m:'safe',e:'📦',en:true},
+    {h:'年代',p:'nián dài',m:'age',e:'📦',en:true},
+    {h:'领导',p:'lǐng dǎo',m:'lead',e:'📦',en:true},
+    {h:'胜利',p:'shèng lì',m:'victory',e:'⚡',en:true},
+    {h:'受伤',p:'shòu shāng',m:'harmed',e:'⚡',en:true},
+    {h:'程度',p:'chéng dù',m:'degree; level; extent',e:'📦',en:true},
+    {h:'代',p:'dài',m:'age',e:'⚡',en:true},
+    {h:'下面',p:'xià miàn',m:'next',e:'↗️',en:true},
+    {h:'理论',p:'lǐ lùn',m:'theory',e:'📦',en:true},
+    {h:'不仅',p:'bù jǐn',m:'not just; not limited to',e:'🔗',en:true},
+    {h:'宣布',p:'xuān bù',m:'to declare',e:'⚡',en:true},
+    {h:'期',p:'qī',m:'cycle',e:'🔹',en:true},
+    {h:'姑娘',p:'gū niang',m:'girl',e:'📦',en:true},
+    {h:'创造',p:'chuàng zào',m:'to create',e:'⚡',en:true},
+    {h:'调',p:'diào',m:'view',e:'⚡',en:true},
+    {h:'艺术',p:'yì shù',m:'art',e:'📦',en:true},
+    {h:'麻烦',p:'má fan',m:'trouble; inconvenience',e:'🎨',en:true},
+    {h:'事故',p:'shì gù',m:'accident',e:'📦',en:true},
+    {h:'美好',p:'měi hǎo',m:'fine',e:'🎨',en:true},
+    {h:'抓住',p:'zhuā zhù',m:'to grab hold of; to capture',e:'⚡',en:true},
+    {h:'武器',p:'wǔ qì',m:'arms',e:'📦',en:true},
+    {h:'各种',p:'gè zhǒng',m:'every kind of; all kinds of; various',e:'🙂',en:true},
+    {h:'思想',p:'sī xiǎng',m:'idea',e:'📦',en:true},
+    {h:'破坏',p:'pò huài',m:'damage',e:'⚡',en:true},
+    {h:'消失',p:'xiāo shī',m:'to disappear; to fade away',e:'⚡',en:true},
+    {h:'害怕',p:'hài pà',m:'to be afraid',e:'⚡',en:true},
+    {h:'龙',p:'Lóng',m:'surname Long',e:'📦',en:true},
+    {h:'满足',p:'mǎn zú',m:'content',e:'⚡',en:true},
+    {h:'配',p:'pèi',m:'to fit',e:'⚡',en:true},
+    {h:'等待',p:'děng dài',m:'to wait; to wait for',e:'⚡',en:true},
+    {h:'演出',p:'yǎn chū',m:'show',e:'⚡',en:true},
+    {h:'乐',p:'Lè',m:'surname Le',e:'🎨',en:true},
+    {h:'事实上',p:'shì shí shàng',m:'in fact',e:'📝',en:true},
+    {h:'超级',p:'chāo jí',m:'super-',e:'➡️',en:true},
+    {h:'猪',p:'zhū',m:'hog',e:'📦',en:true},
+    {h:'设备',p:'shè bèi',m:'equipment; facilities; installations',e:'📦',en:true},
+    {h:'保',p:'Bǎo',m:'Bulgaria',e:'⚡',en:true},
+    {h:'团',p:'tuán',m:'lump',e:'📦',en:true},
+    {h:'世纪',p:'shì jì',m:'century',e:'📦',en:true},
+    {h:'制造',p:'zhì zào',m:'to manufacture; to make',e:'⚡',en:true},
+    {h:'紧',p:'jǐn',m:'near',e:'🎨',en:true},
+    {h:'对手',p:'duì shǒu',m:'rival',e:'📦',en:true},
+    {h:'证',p:'zhèng',m:'to admonish',e:'📦',en:true},
+    {h:'不得不',p:'bù dé bù',m:'have to',e:'➡️',en:true},
+    {h:'当地',p:'dāng dì',m:'local',e:'📍',en:true},
+    {h:'大概',p:'dà gài',m:'rough',e:'➡️',en:true},
+    {h:'演',p:'yǎn',m:'to act',e:'⚡',en:true},
+    {h:'顿',p:'dùn',m:'to stop',e:'🔹',en:true},
+    {h:'共同',p:'gòng tóng',m:'joint',e:'➡️',en:true},
+    {h:'杂志',p:'zá zhì',m:'magazine',e:'📦',en:true},
+    {h:'停止',p:'tíng zhǐ',m:'to stop; to halt; to cease',e:'⚡',en:true},
+    {h:'文化',p:'wén huà',m:'culture',e:'📦',en:true},
+    {h:'具体',p:'jù tǐ',m:'concrete',e:'🎨',en:true},
+    {h:'合',p:'gě',m:'one-tenth of a peck',e:'⚡',en:true},
+    {h:'演员',p:'yǎn yuán',m:'performer',e:'📦',en:true},
+    {h:'周围',p:'zhōu wéi',m:'environs; surroundings; periphery',e:'↗️',en:true},
+    {h:'奇怪',p:'qí guài',m:'odd',e:'⚡',en:true},
+    {h:'复杂',p:'fù zá',m:'complicated; complex',e:'🎨',en:true},
+    {h:'表达',p:'biǎo dá',m:'to express; to convey',e:'⚡',en:true},
+    {h:'胜',p:'shèng',m:'victory',e:'⚡',en:true},
+    {h:'慢慢',p:'màn màn',m:'slowly',e:'➡️',en:true},
+    {h:'压',p:'yā',m:'to press',e:'⚡',en:true},
+    {h:'确保',p:'què bǎo',m:'to ensure; to guarantee',e:'⚡',en:true},
+    {h:'建',p:'jiàn',m:'to found',e:'⚡',en:true},
+    {h:'队员',p:'duì yuán',m:'team member',e:'📦',en:true},
+    {h:'足够',p:'zú gòu',m:'enough',e:'⚡',en:true},
+    {h:'布',p:'bù',m:'to spread',e:'📦',en:true},
+    {h:'咖啡',p:'kā fēi',m:'coffee (loanword)',e:'📦',en:true},
+    {h:'采取',p:'cǎi qǔ',m:'to take',e:'⚡',en:true},
+    {h:'意外',p:'yì wài',m:'mishap',e:'🎨',en:true},
+    {h:'风险',p:'fēng xiǎn',m:'risk; hazard',e:'📦',en:true},
+    {h:'时刻',p:'shí kè',m:'time',e:'📦',en:true},
+    {h:'断',p:'duàn',m:'to snap',e:'⚡',en:true},
+    {h:'观察',p:'guān chá',m:'to observe; to watch; to survey',e:'⚡',en:true},
+    {h:'千万',p:'qiān wàn',m:'many',e:'🔢',en:true},
+    {h:'钟',p:'Zhōng',m:'surname Zhong',e:'📦',en:true},
+    {h:'接近',p:'jiē jìn',m:'to approach',e:'⚡',en:true},
+    {h:'重大',p:'zhòng dà',m:'great',e:'🎨',en:true},
+    {h:'表明',p:'biǎo míng',m:'known',e:'⚡',en:true},
+    {h:'持续',p:'chí xù',m:'to last',e:'⚡',en:true},
+    {h:'具有',p:'jù yǒu',m:'to have; to possess',e:'⚡',en:true},
+    {h:'和平',p:'Hé píng',m:'Heping District of Shenyang city 沈阳市, Liaoning',e:'📦',en:true},
+    {h:'板',p:'bǎn',m:'hard',e:'📦',en:true},
+    {h:'发表',p:'fā biǎo',m:'to issue',e:'⚡',en:true},
+    {h:'修',p:'Xiū',m:'surname Xiu',e:'⚡',en:true},
+    {h:'相关',p:'xiāng guān',m:'related',e:'⚡',en:true},
+    {h:'价格',p:'jià gé',m:'price',e:'📦',en:true},
+    {h:'旧',p:'jiù',m:'old',e:'🎨',en:true},
+    {h:'前面',p:'qián miàn',m:'ahead',e:'↗️',en:true},
+    {h:'简直',p:'jiǎn zhí',m:'simply; really',e:'➡️',en:true},
+    {h:'退',p:'tuì',m:'to decline',e:'⚡',en:true},
+    {h:'强大',p:'qiáng dà',m:'large',e:'🎨',en:true},
+    {h:'证据',p:'zhèng jù',m:'proof',e:'📦',en:true},
+    {h:'交流',p:'jiāo liú',m:'exchange',e:'⚡',en:true},
+    {h:'幸运',p:'xìng yùn',m:'luck',e:'🎨',en:true},
+    {h:'制作',p:'zhì zuò',m:'to make; to manufacture',e:'⚡',en:true},
+    {h:'教练',p:'jiào liàn',m:'trainer',e:'📦',en:true},
+    {h:'付',p:'Fù',m:'surname Fu',e:'⚡',en:true},
+    {h:'公开',p:'gōng kāi',m:'open; overt; public',e:'⚡',en:true},
+    {h:'资金',p:'zī jīn',m:'funds; capital',e:'📦',en:true},
+    {h:'员工',p:'yuán gōng',m:'staff',e:'📦',en:true},
+    {h:'全球',p:'quán qiú',m:'total',e:'📦',en:true},
+    {h:'升',p:'shēng',m:'liter',e:'⚡',en:true},
+    {h:'经营',p:'jīng yíng',m:'to engage in (business etc); to run; to operate',e:'⚡',en:true},
+    {h:'困',p:'kùn',m:'to trap',e:'⚡',en:true},
+    {h:'初',p:'chū',m:'first',e:'↗️',en:true},
+    {h:'员',p:'yuán',m:'person',e:'🔹',en:true},
+    {h:'立刻',p:'lì kè',m:'prompt',e:'➡️',en:true},
+    {h:'实验',p:'shí yàn',m:'test',e:'⚡',en:true},
+    {h:'取消',p:'qǔ xiāo',m:'to cancel',e:'⚡',en:true},
+    {h:'通常',p:'tōng cháng',m:'usual',e:'➡️',en:true},
+    {h:'对象',p:'duì xiàng',m:'target; object',e:'📦',en:true},
+    {h:'浪费',p:'làng fèi',m:'to waste',e:'⚡',en:true},
+    {h:'合理',p:'hé lǐ',m:'rational; reasonable; sensible; fair',e:'🎨',en:true},
+    {h:'任',p:'Rén',m:'Ren County 任县 in Hebei',e:'⚡',en:true},
+    {h:'香',p:'xiāng',m:'fragrant',e:'📦',en:true},
+    {h:'成熟',p:'chéng shú',m:'mature; ripe',e:'🎨',en:true},
+    {h:'文章',p:'wén zhāng',m:'essay',e:'📦',en:true},
+    {h:'信任',p:'xìn rèn',m:'to trust',e:'⚡',en:true},
+    {h:'反正',p:'fǎn zhèng',m:'anyway',e:'➡️',en:true},
+    {h:'内心',p:'nèi xīn',m:'(math.) incenter',e:'📦',en:true},
+    {h:'发出',p:'fā chū',m:'to produce (a sound); to let out (a laugh)',e:'⚡',en:true},
+    {h:'赶紧',p:'gǎn jǐn',m:'hurriedly',e:'➡️',en:true},
+    {h:'进一步',p:'jìn yī bù',m:'to go a step further',e:'➡️',en:true},
+    {h:'费',p:'Fèi',m:'surname Fei',e:'📦',en:true},
+    {h:'防',p:'fáng',m:'to defend',e:'⚡',en:true},
+    {h:'舞台',p:'wǔ tái',m:'(lit. and fig.) stage; arena',e:'📦',en:true},
+    {h:'化',p:'huā',m:'variant of 花',e:'⚡',en:true},
+    {h:'不必',p:'bù bì',m:'need not',e:'➡️',en:true},
+    {h:'现金',p:'xiàn jīn',m:'cash',e:'📦',en:true},
+    {h:'调整',p:'tiáo zhěng',m:'revision',e:'⚡',en:true},
+    {h:'糖',p:'táng',m:'sugar',e:'📦',en:true},
+    {h:'阳光',p:'yáng guāng',m:'sunshine',e:'📦',en:true},
+    {h:'领',p:'lǐng',m:'neck',e:'⚡',en:true},
+    {h:'紧急',p:'jǐn jí',m:'urgent',e:'🎨',en:true},
+    {h:'宣传',p:'xuān chuán',m:'propaganda',e:'⚡',en:true},
+    {h:'优势',p:'yōu shì',m:'dominance',e:'📦',en:true},
+    {h:'互相',p:'hù xiāng',m:'mutual',e:'➡️',en:true},
+    {h:'科技',p:'kē jì',m:'science and technology',e:'📦',en:true},
+    {h:'导演',p:'dǎo yǎn',m:'to direct',e:'📝',en:true},
+    {h:'印象',p:'yìn xiàng',m:'a memory',e:'📦',en:true},
+    {h:'烟',p:'yān',m:'mist',e:'📦',en:true},
+    {h:'生意',p:'shēng yì',m:'vitality',e:'📦',en:true},
+    {h:'赶',p:'gǎn',m:'to hurry; to rush',e:'⚡',en:true},
+    {h:'存',p:'cún',m:'to keep',e:'⚡',en:true},
+    {h:'评价',p:'píng jià',m:'to assess',e:'⚡',en:true},
+    {h:'桥',p:'qiáo',m:'bridge',e:'📦',en:true},
+    {h:'迷',p:'mí',m:'fan',e:'⚡',en:true},
+    {h:'形象',p:'xíng xiàng',m:'form',e:'📦',en:true},
+    {h:'上去',p:'shàng qù',m:'to go up',e:'⚡',en:true},
+    {h:'仅仅',p:'jǐn jǐn',m:'only',e:'➡️',en:true},
+    {h:'商业',p:'shāng yè',m:'trade',e:'📦',en:true},
+    {h:'到达',p:'dào dá',m:'to reach; to arrive',e:'⚡',en:true},
+    {h:'主任',p:'zhǔ rèn',m:'head',e:'📦',en:true},
+    {h:'基础',p:'jī chǔ',m:'basic; fundamental',e:'📦',en:true},
+    {h:'功能',p:'gōng néng',m:'function; capability',e:'📦',en:true},
+    {h:'生产',p:'shēng chǎn',m:'to give birth to a child',e:'⚡',en:true},
+    {h:'适应',p:'shì yìng',m:'to fit',e:'⚡',en:true},
+    {h:'进展',p:'jìn zhǎn',m:'to make headway; to make progress',e:'⚡',en:true},
+    {h:'试验',p:'shì yàn',m:'test',e:'⚡',en:true},
+    {h:'成长',p:'chéng zhǎng',m:'growth',e:'⚡',en:true},
+    {h:'游',p:'Yóu',m:'surname You',e:'⚡',en:true},
+    {h:'指导',p:'zhǐ dǎo',m:'tuition',e:'⚡',en:true},
+    {h:'食品',p:'shí pǐn',m:'foodstuff; food; provisions',e:'📦',en:true},
+    {h:'大约',p:'dà yuē',m:'probably',e:'➡️',en:true},
+    {h:'联合',p:'lián hé',m:'unite',e:'⚡',en:true},
+    {h:'铁',p:'Tiě',m:'surname Tie',e:'📦',en:true},
+    {h:'录',p:'lù',m:'to carve wood',e:'⚡',en:true},
+    {h:'提前',p:'tí qián',m:'in advance',e:'⚡',en:true},
+    {h:'组合',p:'zǔ hé',m:'set',e:'⚡',en:true},
+    {h:'积极',p:'jī jí',m:'active',e:'🎨',en:true},
+    {h:'强烈',p:'qiáng liè',m:'strong; intense',e:'🎨',en:true},
+    {h:'争取',p:'zhēng qǔ',m:'to win over',e:'⚡',en:true},
+    {h:'汤',p:'Tāng',m:'surname Tang',e:'📦',en:true},
+    {h:'恐怕',p:'kǒng pà',m:'fear',e:'➡️',en:true},
+    {h:'搬',p:'bān',m:'to shift',e:'⚡',en:true},
+    {h:'自从',p:'zì cóng',m:'ever since',e:'📌',en:true},
+    {h:'命运',p:'mìng yùn',m:'fate; destiny',e:'📦',en:true},
+    {h:'女子',p:'nǚ zǐ',m:'woman',e:'📦',en:true},
+    {h:'类似',p:'lèi sì',m:'similar',e:'🎨',en:true},
+    {h:'尽量',p:'jǐn liàng',m:'as much as possible',e:'➡️',en:true},
+    {h:'及时',p:'jí shí',m:'promptly; without delay',e:'🎨',en:true},
+    {h:'专门',p:'zhuān mén',m:'specialist',e:'➡️',en:true},
+    {h:'资格',p:'zī gé',m:'seniority',e:'📦',en:true},
+    {h:'工具',p:'gōng jù',m:'tool',e:'📦',en:true},
+    {h:'快速',p:'kuài sù',m:'fast; high-speed; rapid',e:'➡️',en:true},
+    {h:'连续',p:'lián xù',m:'serial',e:'🎨',en:true},
+    {h:'决赛',p:'jué sài',m:'finals (of a competition)',e:'⚡',en:true},
+    {h:'厂',p:'hǎn',m:'"cliff" radical in Chinese characters',e:'📦',en:true},
+    {h:'形成',p:'xíng chéng',m:'to form',e:'⚡',en:true},
+    {h:'背后',p:'bèi hòu',m:'behind',e:'↗️',en:true},
+    {h:'配合',p:'pèi hé',m:'to fit',e:'⚡',en:true},
+    {h:'显得',p:'xiǎn de',m:'to seem',e:'⚡',en:true},
+    {h:'亲自',p:'qīn zì',m:'oneself',e:'➡️',en:true},
+    {h:'公共',p:'gōng gòng',m:'public; common; communal',e:'📝',en:true},
+    {h:'费用',p:'fèi yòng',m:'cost',e:'📦',en:true},
+    {h:'自动',p:'zì dòng',m:'automatic',e:'➡️',en:true},
+    {h:'明确',p:'míng què',m:'clear-cut; definite; explicit',e:'🎨',en:true},
+    {h:'结合',p:'jié hé',m:'to link',e:'⚡',en:true},
+    {h:'当中',p:'dāng zhōng',m:'among',e:'↗️',en:true},
+    {h:'男子',p:'nán zǐ',m:'a man; a male',e:'📦',en:true},
+    {h:'生存',p:'shēng cún',m:'to exist',e:'⚡',en:true},
+    {h:'胖',p:'pán',m:'healthy',e:'🎨',en:true},
+    {h:'土',p:'Tǔ',m:'Tu (ethnic group)',e:'📦',en:true},
+    {h:'念',p:'niàn',m:'variant of 念, to read aloud',e:'⚡',en:true},
+    {h:'进步',p:'jìn bù',m:'progress; improvement',e:'⚡',en:true},
+    {h:'对待',p:'duì dài',m:'to treat',e:'⚡',en:true},
+    {h:'村',p:'cūn',m:'village',e:'📦',en:true},
+    {h:'现象',p:'xiàn xiàng',m:'phenomenon',e:'📦',en:true},
+    {h:'实力',p:'shí lì',m:'strength',e:'📦',en:true},
+    {h:'缺',p:'quē',m:'lack',e:'⚡',en:true},
+    {h:'主动',p:'zhǔ dòng',m:'active',e:'🎨',en:true},
+    {h:'甜',p:'tián',m:'sweet',e:'🎨',en:true},
+    {h:'服装',p:'fú zhuāng',m:'dress',e:'📦',en:true},
+    {h:'形式',p:'xíng shì',m:'form',e:'📦',en:true},
+    {h:'判断',p:'pàn duàn',m:'to judge',e:'⚡',en:true},
+    {h:'前往',p:'qián wǎng',m:'to leave for; to proceed towards; to go to',e:'⚡',en:true},
+    {h:'相互',p:'xiāng hù',m:'mutual',e:'➡️',en:true},
+    {h:'成立',p:'chéng lì',m:'to set up',e:'⚡',en:true},
+    {h:'现代',p:'Xiàn dài',m:'Hyundai, South Korean company',e:'⏰',en:true},
+    {h:'工资',p:'gōng zī',m:'wages; pay',e:'📦',en:true},
+    {h:'深刻',p:'shēn kè',m:'deep',e:'🎨',en:true},
+    {h:'庆祝',p:'qìng zhù',m:'to celebrate',e:'⚡',en:true},
+    {h:'伤心',p:'shāng xīn',m:'to grieve',e:'🎨',en:true},
+    {h:'眼前',p:'yǎn qián',m:'now',e:'📍',en:true},
+    {h:'足球',p:'zú qiú',m:'soccer',e:'📦',en:true},
+    {h:'全面',p:'quán miàn',m:'total',e:'🎨',en:true},
+    {h:'体验',p:'tǐ yàn',m:'to experience for oneself',e:'⚡',en:true},
+    {h:'话题',p:'huà tí',m:'topic',e:'📦',en:true},
+    {h:'坚强',p:'jiān qiáng',m:'strong',e:'🎨',en:true},
+    {h:'古',p:'Gǔ',m:'surname Gu',e:'🎨',en:true},
+    {h:'苹果',p:'píngguǒ',m:'Táo',e:'🍎',en:false},
+    {h:'银',p:'yín',m:'silver',e:'📦',en:true},
+    {h:'区别',p:'qū bié',m:'difference',e:'📦',en:true},
+    {h:'合法',p:'hé fǎ',m:'legal',e:'🎨',en:true},
+    {h:'羊',p:'Yáng',m:'surname Yang',e:'📦',en:true},
+    {h:'将来',p:'jiāng lái',m:'future',e:'⏰',en:true},
+    {h:'造',p:'zào',m:'crop',e:'⚡',en:true},
+    {h:'个性',p:'gè xìng',m:'personality',e:'📦',en:true},
+    {h:'批准',p:'pī zhǔn',m:'to approve; to ratify',e:'⚡',en:true},
+    {h:'前进',p:'qián jìn',m:'onward',e:'⚡',en:true},
+    {h:'啤酒',p:'pí jiǔ',m:'beer (loanword)',e:'📦',en:true},
+    {h:'机器',p:'jī qì',m:'machine',e:'📦',en:true},
+    {h:'公布',p:'gōng bù',m:'to publish',e:'⚡',en:true},
+    {h:'工厂',p:'gōng chǎng',m:'factory',e:'📦',en:true},
+    {h:'指出',p:'zhǐ chū',m:'to indicate',e:'⚡',en:true},
+    {h:'举办',p:'jǔ bàn',m:'to hold',e:'⚡',en:true},
+    {h:'人才',p:'rén cái',m:'looks',e:'📦',en:true},
+    {h:'看上去',p:'kàn shang qu',m:'it would appear',e:'⚡',en:true},
+    {h:'环',p:'Huán',m:'surname Huan',e:'📦',en:true},
+    {h:'双方',p:'shuāng fāng',m:'bilateral',e:'📦',en:true},
+    {h:'离婚',p:'lí hūn',m:'to divorce',e:'⚡',en:true},
+    {h:'退出',p:'tuì chū',m:'to quit',e:'⚡',en:true},
+    {h:'支付',p:'zhī fù',m:'to pay (money)',e:'⚡',en:true},
+    {h:'赶快',p:'gǎn kuài',m:'quickly; at once',e:'➡️',en:true},
+    {h:'整理',p:'zhěng lǐ',m:'to arrange',e:'⚡',en:true},
+    {h:'吵',p:'chǎo',m:'noisy',e:'⚡',en:true},
+    {h:'丰富',p:'fēng fù',m:'rich',e:'🎨',en:true},
+    {h:'动力',p:'dòng lì',m:'force',e:'📦',en:true},
+    {h:'温暖',p:'wēn nuǎn',m:'warm',e:'🎨',en:true},
+    {h:'齐',p:'Qí',m:'(name of states and dynasties at several different period…',e:'🎨',en:true},
+    {h:'表面',p:'biǎo miàn',m:'face',e:'📦',en:true},
+    {h:'领先',p:'lǐng xiān',m:'to lead',e:'⚡',en:true},
+    {h:'作者',p:'zuò zhě',m:'author; writer',e:'📦',en:true},
+    {h:'上升',p:'shàng shēng',m:'to rise',e:'⚡',en:true},
+    {h:'声明',p:'shēng míng',m:'to state',e:'📦',en:true},
+    {h:'围',p:'Wéi',m:'surname Wei',e:'⚡',en:true},
+    {h:'路线',p:'lù xiàn',m:'route',e:'📦',en:true},
+    {h:'完整',p:'wán zhěng',m:'intact',e:'🎨',en:true},
+    {h:'谈判',p:'tán pàn',m:'talks',e:'⚡',en:true},
+    {h:'飞行',p:'fēi xíng',m:'flying',e:'⚡',en:true},
+    {h:'较',p:'jiào',m:'rather',e:'➡️',en:true},
+    {h:'纪念',p:'jì niàn',m:'memento; keepsake; souvenir',e:'⚡',en:true},
+    {h:'福',p:'Fú',m:'surname Fu',e:'📦',en:true},
+    {h:'补',p:'bǔ',m:'to mend',e:'⚡',en:true},
+    {h:'赶到',p:'gǎn dào',m:'to hurry (to some place)',e:'⚡',en:true},
+    {h:'公民',p:'gōng mín',m:'citizen',e:'📦',en:true},
+    {h:'当初',p:'dāng chū',m:'originally',e:'⏰',en:true},
+    {h:'分别',p:'fēn bié',m:'difference; distinction',e:'➡️',en:true},
+    {h:'愿望',p:'yuàn wàng',m:'wish',e:'📦',en:true},
+    {h:'长期',p:'cháng qī',m:'long term',e:'➡️',en:true},
+    {h:'数量',p:'shù liàng',m:'amount',e:'📦',en:true},
+    {h:'保留',p:'bǎo liú',m:'to keep',e:'⚡',en:true},
+    {h:'相比',p:'xiāng bǐ',m:'to compare',e:'⚡',en:true},
+    {h:'深入',p:'shēn rù',m:'thorough',e:'⚡',en:true},
+    {h:'石油',p:'shí yóu',m:'oil',e:'📦',en:true},
+    {h:'情感',p:'qíng gǎn',m:'feeling',e:'📦',en:true},
+    {h:'称为',p:'chēng wéi',m:'to be called; to be known as; to call it "..."',e:'⚡',en:true},
+    {h:'人群',p:'rén qún',m:'crowd',e:'📦',en:true},
+    {h:'计算',p:'jì suàn',m:'to count',e:'⚡',en:true},
+    {h:'开发',p:'kāi fā',m:'to develop',e:'⚡',en:true},
+    {h:'始终',p:'shǐ zhōng',m:'all along',e:'➡️',en:true},
+    {h:'争',p:'zhēng',m:'to vie for',e:'⚡',en:true},
+    {h:'订',p:'dìng',m:'to agree',e:'⚡',en:true},
+    {h:'卫生',p:'wèi shēng',m:'health',e:'🎨',en:true},
+    {h:'富',p:'Fù',m:'surname Fu',e:'🎨',en:true},
+    {h:'加强',p:'jiā qiáng',m:'to reinforce; to strengthen; to enhance',e:'⚡',en:true},
+    {h:'保安',p:'bǎo ān',m:'security guard',e:'📦',en:true},
+    {h:'歌手',p:'gē shǒu',m:'singer',e:'📦',en:true},
+    {h:'实验室',p:'shí yàn shì',m:'laboratory',e:'📦',en:true},
+    {h:'开放',p:'kāi fàng',m:'to open',e:'⚡',en:true},
+    {h:'各地',p:'gè dì',m:'various regions',e:'🙂',en:true},
+    {h:'性格',p:'xìng gé',m:'nature',e:'📦',en:true},
+    {h:'团结',p:'tuán jié',m:'unity',e:'⚡',en:true},
+    {h:'展开',p:'zhǎn kāi',m:'to launch; to carry out',e:'⚡',en:true},
+    {h:'把握',p:'bǎ wò',m:'to hold',e:'⚡',en:true},
+    {h:'成就',p:'chéng jiù',m:'success',e:'📦',en:true},
+    {h:'课程',p:'kè chéng',m:'course',e:'📦',en:true},
+    {h:'看起来',p:'kàn qǐ lai',m:'seemingly',e:'⚡',en:true},
+    {h:'发动',p:'fā dòng',m:'to start',e:'⚡',en:true},
+    {h:'果然',p:'guǒ rán',m:'really',e:'➡️',en:true},
+    {h:'放到',p:'fàng dào',m:'Put in',e:'⚡',en:true},
+    {h:'静',p:'jìng',m:'calm',e:'🎨',en:true},
+    {h:'需求',p:'xū qiú',m:'to require',e:'📦',en:true},
+    {h:'只好',p:'zhǐ hǎo',m:'to have no other option but to ...; to have to',e:'➡️',en:true},
+    {h:'国内',p:'guó nèi',m:'civil',e:'📍',en:true},
+    {h:'谈话',p:'tán huà',m:'talk',e:'⚡',en:true},
+    {h:'传说',p:'chuán shuō',m:'legend; folk tale',e:'📦',en:true},
+    {h:'转变',p:'zhuǎn biàn',m:'shift',e:'⚡',en:true},
+    {h:'能不能',p:'néng bùnéng',m:'Can you',e:'📝',en:true},
+    {h:'至今',p:'zhì jīn',m:'so far',e:'➡️',en:true},
+    {h:'后果',p:'hòu guǒ',m:'aftermath',e:'📦',en:true},
+    {h:'打破',p:'dǎ pò',m:'to break; to smash',e:'⚡',en:true},
+    {h:'上来',p:'shàng lái',m:'to come up',e:'⚡',en:true},
+    {h:'石头',p:'shí tou',m:'stone',e:'📦',en:true},
+    {h:'主持',p:'zhǔ chí',m:'to uphold',e:'⚡',en:true},
+    {h:'访问',p:'fǎng wèn',m:'to visit',e:'⚡',en:true},
+    {h:'先进',p:'xiān jìn',m:'to advance',e:'🎨',en:true},
+    {h:'才能',p:'cái néng',m:'talent',e:'📦',en:true},
+    {h:'文明',p:'wén míng',m:'culture',e:'📦',en:true},
+    {h:'西部',p:'xī bù',m:'western part',e:'↗️',en:true},
+    {h:'玩具',p:'wán jù',m:'toy',e:'📦',en:true},
+    {h:'防止',p:'fáng zhǐ',m:'to prevent',e:'⚡',en:true},
+    {h:'年纪',p:'nián jì',m:'age',e:'📦',en:true},
+    {h:'采用',p:'cǎi yòng',m:'to use',e:'⚡',en:true},
+    {h:'手指',p:'shǒu zhǐ',m:'finger',e:'📦',en:true},
+    {h:'天空',p:'tiān kōng',m:'sky',e:'📦',en:true},
+    {h:'制度',p:'zhì dù',m:'institution',e:'📦',en:true},
+    {h:'工业',p:'gōng yè',m:'industry',e:'📦',en:true},
+    {h:'广播',p:'guǎng bō',m:'broadcast',e:'⚡',en:true},
+    {h:'从事',p:'cóng shì',m:'to do',e:'⚡',en:true},
+    {h:'改造',p:'gǎi zào',m:'to reform',e:'⚡',en:true},
+    {h:'制定',p:'zhì dìng',m:'to draw up; to formulate',e:'⚡',en:true},
+    {h:'直播',p:'zhí bō',m:'live broadcast',e:'⚡',en:true},
+    {h:'应当',p:'yīng dāng',m:'should; ought to',e:'⚡',en:true},
+    {h:'交往',p:'jiāo wǎng',m:'to date',e:'⚡',en:true},
+    {h:'各自',p:'gè zì',m:'each',e:'🙂',en:true},
+    {h:'不论',p:'bù lùn',m:'whatever',e:'🔗',en:true},
+    {h:'退休',p:'tuì xiū',m:'to retire (from the workforce); to go into retirement',e:'⚡',en:true},
+    {h:'成果',p:'chéng guǒ',m:'gain',e:'📦',en:true},
+    {h:'概念',p:'gài niàn',m:'idea',e:'📦',en:true},
+    {h:'创作',p:'chuàng zuò',m:'to write',e:'⚡',en:true},
+    {h:'据说',p:'jù shuō',m:'it is said that; reportedly',e:'⚡',en:true},
+    {h:'自身',p:'zì shēn',m:'itself',e:'🙂',en:true},
+    {h:'整天',p:'zhěng tiān',m:'whole day',e:'➡️',en:true},
+    {h:'去世',p:'qù shì',m:'to die',e:'⚡',en:true},
+    {h:'批评',p:'pī píng',m:'to criticize; criticism',e:'⚡',en:true},
+    {h:'增长',p:'zēng zhǎng',m:'to grow',e:'⚡',en:true},
+    {h:'部长',p:'bù zhǎng',m:'minister',e:'📦',en:true},
+    {h:'否认',p:'fǒu rèn',m:'to deny',e:'⚡',en:true},
+    {h:'主意',p:'zhǔ yi',m:'plan',e:'📦',en:true},
+    {h:'体会',p:'tǐ huì',m:'to realize',e:'⚡',en:true},
+    {h:'感冒',p:'gǎn mào',m:'can\'t stand',e:'⚡',en:true},
+    {h:'高速',p:'gāo sù',m:'high speed',e:'➡️',en:true},
+    {h:'观看',p:'guān kàn',m:'to watch; to view',e:'⚡',en:true},
+    {h:'推进',p:'tuī jìn',m:'to impel',e:'⚡',en:true},
+    {h:'安装',p:'ān zhuāng',m:'to fix',e:'⚡',en:true},
+    {h:'欢乐',p:'huān lè',m:'gay',e:'🎨',en:true},
+    {h:'功夫',p:'gōng fu',m:'art',e:'📦',en:true},
+    {h:'团体',p:'tuán tǐ',m:'team',e:'📦',en:true},
+    {h:'房屋',p:'fáng wū',m:'house',e:'📦',en:true},
+    {h:'得分',p:'dé fēn',m:'to score',e:'⚡',en:true},
+    {h:'纪录',p:'jì lù',m:'variant of 记录',e:'📦',en:true},
+    {h:'游泳',p:'yóu yǒng',m:'to swim',e:'⚡',en:true},
+    {h:'基本上',p:'jī běn shang',m:'basically',e:'➡️',en:true},
+    {h:'农民',p:'nóng mín',m:'farmer',e:'📦',en:true},
+    {h:'民族',p:'mín zú',m:'nationality; ethnic group',e:'📦',en:true},
+    {h:'商品',p:'shāng pǐn',m:'goods',e:'📦',en:true},
+    {h:'属',p:'shǔ',m:'to be',e:'⚡',en:true},
+    {h:'裤子',p:'kù zi',m:'pants',e:'📦',en:true},
+    {h:'运输',p:'yùn shū',m:'to carry',e:'⚡',en:true},
+    {h:'传播',p:'chuán bō',m:'to disseminate; to propagate; to spread',e:'⚡',en:true},
+    {h:'好奇',p:'hào qí',m:'curious',e:'🎨',en:true},
+    {h:'集体',p:'jí tǐ',m:'a team',e:'📦',en:true},
+    {h:'预计',p:'yù jì',m:'to predict',e:'⚡',en:true},
+    {h:'落后',p:'luò hòu',m:'backward',e:'🎨',en:true},
+    {h:'沙发',p:'shā fā',m:'sofa (loanword)',e:'📦',en:true},
+    {h:'强调',p:'qiáng diào',m:'to stress',e:'⚡',en:true},
+    {h:'加快',p:'jiā kuài',m:'to speed up',e:'⚡',en:true},
+    {h:'考验',p:'kǎo yàn',m:'trial',e:'⚡',en:true},
+    {h:'分配',p:'fēn pèi',m:'to assign',e:'⚡',en:true},
+    {h:'乐队',p:'yuè duì',m:'band',e:'📦',en:true},
+    {h:'演唱会',p:'yǎn chàng huì',m:'vocal recital or concert',e:'📦',en:true},
+    {h:'修改',p:'xiū gǎi',m:'to amend',e:'⚡',en:true},
+    {h:'演唱',p:'yǎn chàng',m:'sung performance',e:'⚡',en:true},
+    {h:'保存',p:'bǎo cún',m:'to keep',e:'⚡',en:true},
+    {h:'跳舞',p:'tiào wǔ',m:'to dance',e:'⚡',en:true},
+    {h:'电视台',p:'diàn shì tái',m:'television station',e:'📦',en:true},
+    {h:'发明',p:'fā míng',m:'to invent',e:'⚡',en:true},
+    {h:'播放',p:'bō fàng',m:'to broadcast; to transmit (by radio or TV)',e:'⚡',en:true},
+    {h:'邮件',p:'yóu jiàn',m:'mail',e:'📦',en:true},
+    {h:'突出',p:'tū chū',m:'prominent',e:'🎨',en:true},
+    {h:'其次',p:'qí cì',m:'next',e:'🔗',en:true},
+    {h:'乐观',p:'lè guān',m:'hopeful',e:'🎨',en:true},
+    {h:'会员',p:'huì yuán',m:'member',e:'📦',en:true},
+    {h:'热烈',p:'rè liè',m:'warm',e:'🎨',en:true},
+    {h:'相似',p:'xiāng sì',m:'similar; alike',e:'🎨',en:true},
+    {h:'联合国',p:'Lián hé guó',m:'United Nations',e:'🏢',en:true},
+    {h:'往往',p:'wǎng wǎng',m:'usually',e:'➡️',en:true},
+    {h:'带领',p:'dài lǐng',m:'to lead',e:'⚡',en:true},
+    {h:'可靠',p:'kě kào',m:'reliable',e:'🎨',en:true},
+    {h:'决心',p:'jué xīn',m:'resolution',e:'📦',en:true},
+    {h:'球迷',p:'qiú mí',m:'fan (ball sports)',e:'📦',en:true},
+    {h:'补充',p:'bǔ chōng',m:'additional',e:'⚡',en:true},
+    {h:'克服',p:'kè fú',m:'to endure',e:'⚡',en:true},
+    {h:'文字',p:'wén zì',m:'script',e:'📦',en:true},
+    {h:'有利',p:'yǒu lì',m:'advantageous; favorable',e:'🎨',en:true},
+    {h:'热爱',p:'rè ài',m:'to adore',e:'⚡',en:true},
+    {h:'体现',p:'tǐ xiàn',m:'to embody',e:'⚡',en:true},
+    {h:'家具',p:'jiā jù',m:'furniture',e:'📦',en:true},
+    {h:'生长',p:'shēng zhǎng',m:'to grow',e:'⚡',en:true},
+    {h:'特色',p:'tè sè',m:'characteristic',e:'📦',en:true},
+    {h:'电视剧',p:'diàn shì jù',m:'TV drama',e:'📦',en:true},
+    {h:'整体',p:'zhěng tǐ',m:'whole',e:'📦',en:true},
+    {h:'身份证',p:'shēn fèn zhèng',m:'ID',e:'📦',en:true},
+    {h:'收费',p:'shōu fèi',m:'to charge a fee',e:'⚡',en:true},
+    {h:'迎接',p:'yíng jiē',m:'to welcome; to greet',e:'⚡',en:true},
+    {h:'改进',p:'gǎi jìn',m:'improvement',e:'⚡',en:true},
+    {h:'建设',p:'jiàn shè',m:'to build; to construct; to establish; to develop',e:'⚡',en:true},
+    {h:'文学',p:'wén xué',m:'literature',e:'📦',en:true},
+    {h:'难度',p:'nán dù',m:'degree of difficulty',e:'📦',en:true},
+    {h:'头脑',p:'tóu nǎo',m:'mind',e:'📦',en:true},
+    {h:'屋子',p:'wū zi',m:'room',e:'📦',en:true},
+    {h:'铁路',p:'tiě lù',m:'railway',e:'📦',en:true},
+    {h:'通信',p:'tōng xìn',m:'communication',e:'⚡',en:true},
+    {h:'缺少',p:'quē shǎo',m:'lack',e:'⚡',en:true},
+    {h:'环保',p:'huán bǎo',m:'environmental protection',e:'📦',en:true},
+    {h:'家乡',p:'jiā xiāng',m:'hometown',e:'📦',en:true},
+    {h:'发送',p:'fā sòng',m:'to transmit',e:'⚡',en:true},
+    {h:'播出',p:'bō chū',m:'to broadcast',e:'⚡',en:true},
+    {h:'读者',p:'dú zhě',m:'reader',e:'📦',en:true},
+    {h:'消费',p:'xiāo fèi',m:'to spend',e:'⚡',en:true},
+    {h:'实行',p:'shí xíng',m:'to implement',e:'⚡',en:true},
+    {h:'吵架',p:'chǎo jià',m:'quarrel',e:'⚡',en:true},
+    {h:'巧',p:'qiǎo',m:'timely',e:'🎨',en:true},
+    {h:'不安',p:'bù ān',m:'uneasy',e:'🎨',en:true},
+    {h:'首都',p:'shǒu dū',m:'capital (city)',e:'📦',en:true},
+    {h:'整整',p:'zhěng zhěng',m:'full',e:'➡️',en:true},
+    {h:'发言',p:'fā yán',m:'statement',e:'⚡',en:true},
+    {h:'观念',p:'guān niàn',m:'sense',e:'📦',en:true},
+    {h:'告别',p:'gào bié',m:'to leave; to part from',e:'⚡',en:true},
+    {h:'反复',p:'fǎn fù',m:'variant of 反复',e:'➡️',en:true},
+    {h:'场所',p:'chǎng suǒ',m:'place',e:'📦',en:true},
+    {h:'亲人',p:'qīn rén',m:'one\'s close relatives',e:'📦',en:true},
+    {h:'早已',p:'zǎo yǐ',m:'(dialect) in the past',e:'➡️',en:true},
+    {h:'初步',p:'chū bù',m:'initial',e:'➡️',en:true},
+    {h:'比例',p:'bǐ lì',m:'scale',e:'📦',en:true},
+    {h:'输入',p:'shū rù',m:'to input',e:'⚡',en:true},
+    {h:'创新',p:'chuàng xīn',m:'innovation',e:'⚡',en:true},
+    {h:'总结',p:'zǒng jié',m:'résumé',e:'⚡',en:true},
+    {h:'空调',p:'kōng tiáo',m:'air conditioning',e:'📦',en:true},
+    {h:'南部',p:'nán bù',m:'southern part',e:'↗️',en:true},
+    {h:'没用',p:'méi yòng',m:'useless',e:'⚡',en:true},
+    {h:'另一方面',p:'lìng yī fāng miàn',m:'another aspect',e:'🔗',en:true},
+    {h:'营养',p:'yíng yǎng',m:'nutrition',e:'📦',en:true},
+    {h:'排名',p:'pái míng',m:'ranking',e:'⚡',en:true},
+    {h:'互联网',p:'Hù lián wǎng',m:'Internet',e:'📦',en:true},
+    {h:'行李',p:'xíng li',m:'luggage',e:'📦',en:true},
+    {h:'毛病',p:'máo bìng',m:'fault',e:'📦',en:true},
+    {h:'场合',p:'chǎng hé',m:'venue',e:'📦',en:true},
+    {h:'衬衫',p:'chèn shān',m:'shirt',e:'📦',en:true},
+    {h:'光明',p:'guāng míng',m:'light',e:'📦',en:true},
+    {h:'合格',p:'hé gé',m:'qualified',e:'⚡',en:true},
+    {h:'东部',p:'dōng bù',m:'the east',e:'↗️',en:true},
+    {h:'认可',p:'rèn kě',m:'OK',e:'⚡',en:true},
+    {h:'提问',p:'tí wèn',m:'to question; to quiz; to grill',e:'⚡',en:true},
+    {h:'家属',p:'jiā shǔ',m:'family member',e:'📦',en:true},
+    {h:'坚决',p:'jiān jué',m:'firm; resolute; determined',e:'🎨',en:true},
+    {h:'传来',p:'chuán lái',m:'to be heard',e:'⚡',en:true},
+    {h:'从前',p:'cóng qián',m:'formerly',e:'⏰',en:true},
+    {h:'日常',p:'rì cháng',m:'day-to-day; daily; everyday',e:'📝',en:true},
+    {h:'缺点',p:'quē diǎn',m:'fault',e:'📦',en:true},
+    {h:'设立',p:'shè lì',m:'to set up; to establish',e:'⚡',en:true},
+    {h:'预防',p:'yù fáng',m:'to prevent',e:'⚡',en:true},
+    {h:'必然',p:'bì rán',m:'certain',e:'➡️',en:true},
+    {h:'写作',p:'xiě zuò',m:'writing',e:'⚡',en:true},
+    {h:'危害',p:'wēi hài',m:'damage',e:'⚡',en:true},
+    {h:'手续',p:'shǒu xù',m:'procedure',e:'📦',en:true},
+    {h:'外交',p:'wài jiāo',m:'diplomacy',e:'📦',en:true},
+    {h:'本事',p:'běn shì',m:'original story',e:'📦',en:true},
+    {h:'高速公路',p:'gāo sù gōng lù',m:'expressway; highway; freeway',e:'📦',en:true},
+    {h:'种子',p:'zhǒng zi',m:'seed',e:'📦',en:true},
+    {h:'录音',p:'lù yīn',m:'sound recording',e:'⚡',en:true},
+    {h:'接待',p:'jiē dài',m:'to receive (a visitor)',e:'⚡',en:true},
+    {h:'推动',p:'tuī dòng',m:'to push (e.g. for acceptance of a plan); to promote',e:'⚡',en:true},
+    {h:'北部',p:'běi bù',m:'northern part',e:'↗️',en:true},
+    {h:'适用',p:'shì yòng',m:'to be applicable',e:'⚡',en:true},
+    {h:'客观',p:'kè guān',m:'objective',e:'🎨',en:true},
+    {h:'裙子',p:'qún zi',m:'skirt',e:'📦',en:true},
+    {h:'香蕉',p:'xiāng jiāo',m:'banana',e:'📦',en:true},
+    {h:'牌子',p:'pái zi',m:'sign',e:'📦',en:true},
+    {h:'应用',p:'yìng yòng',m:'to apply',e:'⚡',en:true},
+    {h:'服务员',p:'fú wù yuán',m:'waiter',e:'📦',en:true},
+    {h:'电台',p:'diàn tái',m:'radio station',e:'📦',en:true},
+    {h:'金牌',p:'jīn pái',m:'gold medal',e:'📦',en:true},
+    {h:'工程师',p:'gōng chéng shī',m:'engineer',e:'📦',en:true},
+    {h:'优点',p:'yōu diǎn',m:'merit',e:'📦',en:true},
+    {h:'完善',p:'wán shàn',m:'excellent',e:'⚡',en:true},
+    {h:'旅馆',p:'lǚ guǎn',m:'hotel',e:'📦',en:true},
+    {h:'志愿者',p:'zhì yuàn zhě',m:'volunteer',e:'📦',en:true},
+    {h:'发达',p:'fā dá',m:'well-developed; flourishing',e:'🎨',en:true},
+    {h:'人工',p:'rén gōng',m:'manpower',e:'➡️',en:true},
+    {h:'普遍',p:'pǔ biàn',m:'common',e:'🎨',en:true},
+    {h:'爱心',p:'ài xīn',m:'love',e:'📦',en:true},
+    {h:'形状',p:'xíng zhuàng',m:'form; shape',e:'📦',en:true},
+    {h:'短期',p:'duǎn qī',m:'short term',e:'➡️',en:true},
+    {h:'全场',p:'quán chǎng',m:'unanimously',e:'📦',en:true},
+    {h:'价钱',p:'jià qian',m:'price',e:'📦',en:true},
+    {h:'证件',p:'zhèng jiàn',m:'certificate; papers; credentials; document; ID',e:'📦',en:true},
+    {h:'共有',p:'gòng yǒu',m:'in all',e:'⚡',en:true},
+    {h:'干吗',p:'gàn má',m:'see 干嘛',e:'⚡',en:true},
+    {h:'底下',p:'dǐ xia',m:'afterwards',e:'↗️',en:true},
+    {h:'开展',p:'kāi zhǎn',m:'to launch',e:'⚡',en:true},
+    {h:'美食',p:'měi shí',m:'fine food',e:'📦',en:true},
+    {h:'推广',p:'tuī guǎng',m:'to extend',e:'⚡',en:true},
+    {h:'古代',p:'gǔ dài',m:'ancient times',e:'⏰',en:true},
+    {h:'中华民族',p:'Zhōng huá mín zú',m:'the Chinese nation',e:'📝',en:true},
+    {h:'散步',p:'sàn bù',m:'to take a walk; to go for a walk',e:'⚡',en:true},
+    {h:'农业',p:'nóng yè',m:'farming',e:'📦',en:true},
+    {h:'大夫',p:'dà fū',m:'senior official (in imperial China)',e:'📦',en:true},
+    {h:'面积',p:'miàn jī',m:'surface area',e:'📦',en:true},
+    {h:'前后',p:'qián hòu',m:'around',e:'↗️',en:true},
+    {h:'加工',p:'jiā gōng',m:'to process',e:'⚡',en:true},
+    {h:'学费',p:'xué fèi',m:'tuition',e:'📦',en:true},
+    {h:'中部',p:'zhōng bù',m:'middle part',e:'↗️',en:true},
+    {h:'歌声',p:'gē shēng',m:'singing voice',e:'📦',en:true},
+    {h:'束',p:'Shù',m:'surname Shu',e:'🔹',en:true},
+    {h:'否定',p:'fǒu dìng',m:'to deny',e:'⚡',en:true},
+    {h:'主张',p:'zhǔ zhāng',m:'view',e:'⚡',en:true},
+    {h:'认出',p:'rèn chū',m:'recognition',e:'⚡',en:true},
+    {h:'性别',p:'xìng bié',m:'sex',e:'📦',en:true},
+    {h:'亲切',p:'qīn qiè',m:'amiable',e:'🎨',en:true},
+    {h:'气候',p:'qì hòu',m:'(meteorology) climate',e:'📦',en:true},
+    {h:'办理',p:'bàn lǐ',m:'to handle; to transact; to conduct',e:'⚡',en:true},
+    {h:'规范',p:'guī fàn',m:'norm',e:'⚡',en:true},
+    {h:'可乐',p:'kě lè',m:'amusing',e:'📦',en:true},
+    {h:'近期',p:'jìn qī',m:'recent',e:'⏰',en:true},
+    {h:'自主',p:'zì zhǔ',m:'autonomous',e:'⚡',en:true},
+    {h:'歌迷',p:'gē mí',m:'fan of a singer',e:'📦',en:true},
+    {h:'握手',p:'wò shǒu',m:'to shake hands',e:'⚡',en:true},
+    {h:'民间',p:'mín jiān',m:'folk',e:'📦',en:true},
+    {h:'题目',p:'tí mù',m:'title',e:'📦',en:true},
+    {h:'解开',p:'jiě kāi',m:'to undo',e:'⚡',en:true},
+    {h:'跑步',p:'pǎo bù',m:'to run',e:'⚡',en:true},
+    {h:'初中',p:'chū zhōng',m:'junior high school (abbr. for 初级中学)',e:'📦',en:true},
+    {h:'将近',p:'jiāng jìn',m:'almost',e:'➡️',en:true},
+    {h:'卫生间',p:'wèi shēng jiān',m:'WC',e:'📦',en:true},
+    {h:'不光',p:'bù guāng',m:'not only',e:'🔗',en:true},
+    {h:'子女',p:'zǐ nǚ',m:'children; sons and daughters',e:'📦',en:true},
+    {h:'老太太',p:'lǎo tài tai',m:'esteemed mother',e:'📦',en:true},
+    {h:'上衣',p:'shàng yī',m:'jacket',e:'📦',en:true},
+    {h:'建成',p:'jiàn chéng',m:'to build',e:'⚡',en:true},
+    {h:'打听',p:'dǎ ting',m:'to ask about',e:'⚡',en:true},
+    {h:'定期',p:'dìng qī',m:'periodic',e:'➡️',en:true},
+    {h:'一方面',p:'yī fāng miàn',m:'on the one hand',e:'🔗',en:true},
+    {h:'动人',p:'dòng rén',m:'moving',e:'🎨',en:true},
+    {h:'老百姓',p:'lǎo bǎi xìng',m:'ordinary people',e:'📦',en:true},
+    {h:'果汁',p:'guǒ zhī',m:'fruit juice',e:'📦',en:true},
+    {h:'剧场',p:'jù chǎng',m:'theater',e:'📦',en:true},
+    {h:'搬家',p:'bān jiā',m:'to remove (sth)',e:'⚡',en:true},
+    {h:'开业',p:'kāi yè',m:'to open a business',e:'⚡',en:true},
+    {h:'生动',p:'shēng dòng',m:'vivid',e:'🎨',en:true},
+    {h:'就业',p:'jiù yè',m:'employment',e:'⚡',en:true},
+    {h:'彩色',p:'cǎi sè',m:'color',e:'📝',en:true},
+    {h:'节约',p:'jié yuē',m:'frugal',e:'⚡',en:true},
+    {h:'单元',p:'dān yuán',m:'element',e:'📦',en:true},
+    {h:'海关',p:'hǎi guān',m:'customs (i.e. border crossing inspection)',e:'📦',en:true},
+    {h:'自觉',p:'zì jué',m:'aware',e:'🎨',en:true},
+    {h:'收看',p:'shōu kàn',m:'to watch (a TV program)',e:'⚡',en:true},
+    {h:'公务员',p:'gōng wù yuán',m:'functionary',e:'📦',en:true},
+    {h:'暖和',p:'nuǎn huo',m:'warm',e:'🎨',en:true},
+    {h:'被子',p:'bèi zi',m:'quilt',e:'📦',en:true},
+    {h:'农村',p:'nóng cūn',m:'village',e:'📦',en:true},
+    {h:'世界杯',p:'Shì jiè bēi',m:'World Cup',e:'📦',en:true},
+    {h:'听众',p:'tīng zhòng',m:'audience',e:'📦',en:true},
+    {h:'变为',p:'biàn wéi',m:'to change into',e:'⚡',en:true},
+    {h:'邮箱',p:'yóu xiāng',m:'email',e:'📦',en:true},
+    {h:'标题',p:'biāo tí',m:'title',e:'📦',en:true},
+    {h:'预报',p:'yù bào',m:'forecast',e:'⚡',en:true},
+    {h:'整齐',p:'zhěng qí',m:'neat',e:'🎨',en:true},
+    {h:'志愿',p:'zhì yuàn',m:'ambition',e:'📦',en:true},
+    {h:'职工',p:'zhí gōng',m:'workers; staff',e:'📦',en:true},
+    {h:'木头',p:'mù tou',m:'blockhead',e:'📦',en:true},
+    {h:'熟人',p:'shú rén',m:'friend',e:'📦',en:true},
+    {h:'报到',p:'bào dào',m:'to check in',e:'⚡',en:true},
+    {h:'景色',p:'jǐng sè',m:'view',e:'📦',en:true},
+    {h:'表格',p:'biǎo gé',m:'form',e:'📦',en:true},
+    {h:'功课',p:'gōng kè',m:'task',e:'📦',en:true},
+    {h:'美术',p:'měi shù',m:'art',e:'📦',en:true},
+    {h:'故乡',p:'gù xiāng',m:'home',e:'📦',en:true},
+    {h:'认得',p:'rèn de',m:'to know',e:'⚡',en:true},
+    {h:'邮票',p:'yóu piào',m:'(postage) stamp',e:'📦',en:true},
+    {h:'房租',p:'fáng zū',m:'rent for a room or house',e:'📦',en:true},
+    {h:'武术',p:'wǔ shù',m:'self-defense',e:'📦',en:true},
+    {h:'推开',p:'tuī kāi',m:'to reject',e:'⚡',en:true},
+    {h:'短裤',p:'duǎn kù',m:'shorts',e:'📦',en:true},
+    {h:'房东',p:'fáng dōng',m:'landlord',e:'📦',en:true},
+    {h:'广大',p:'guǎng dà',m:'widespread',e:'📝',en:true},
+    {h:'收音机',p:'shōu yīn jī',m:'radio',e:'📦',en:true},
+    {h:'长城',p:'Cháng chéng',m:'the Great Wall',e:'📍',en:true},
+    {h:'收听',p:'shōu tīng',m:'to listen to (a radio broadcast)',e:'⚡',en:true},
+    {h:'电子邮件',p:'diàn zǐ yóu jiàn',m:'email',e:'📝',en:true},
+    {h:'初级',p:'chū jí',m:'junior',e:'📝',en:true},
+    {h:'听力',p:'tīng lì',m:'hearing',e:'📦',en:true},
+    {h:'信封',p:'xìn fēng',m:'envelope',e:'📦',en:true},
+    {h:'衬衣',p:'chèn yī',m:'shirt',e:'📦',en:true},
+    {h:'结实',p:'jiē shí',m:'to bear fruit',e:'🎨',en:true},
+    {h:'班级',p:'bān jí',m:'grade (in school)',e:'📦',en:true},
+    {h:'现代化',p:'xiàn dài huà',m:'modernization',e:'⚡',en:true},
+    {h:'专题',p:'zhuān tí',m:'article, report or program etc on a specific topic',e:'📦',en:true},
+    {h:'工夫',p:'gōng fū',m:'(old) laborer',e:'📦',en:true},
+    {h:'创业',p:'chuàng yè',m:'venture',e:'⚡',en:true},
+    {h:'本领',p:'běn lǐng',m:'skill',e:'📦',en:true},
+    {h:'旅行社',p:'lǚ xíng shè',m:'travel agency',e:'📦',en:true},
+    {h:'话剧',p:'huà jù',m:'stage play',e:'📦',en:true},
+    {h:'大使馆',p:'dà shǐ guǎn',m:'embassy',e:'📦',en:true},
+    {h:'沙子',p:'shā zi',m:'sand',e:'📦',en:true},
+    {h:'分组',p:'fēn zǔ',m:'subgroup',e:'⚡',en:true},
+    {h:'请教',p:'qǐng jiào',m:'to consult',e:'⚡',en:true},
+    {h:'年底',p:'nián dǐ',m:'year-end',e:'⏰',en:true},
+    {h:'带动',p:'dài dòng',m:'to spur; to provide impetus; to drive',e:'⚡',en:true},
+    {h:'交警',p:'jiāo jǐng',m:'traffic police (abbr. for 察)',e:'📦',en:true},
+    {h:'代表团',p:'dài biǎo tuán',m:'delegation',e:'📦',en:true},
+    {h:'影视',p:'yǐng shì',m:'movies and television',e:'📝',en:true},
+    {h:'国庆',p:'Guó qìng',m:'National Day',e:'⏰',en:true},
+    {h:'做客',p:'zuò kè',m:'to be a guest or visitor',e:'⚡',en:true},
+    {h:'理发',p:'lǐ fà',m:'to get a haircut; to have one\'s hair done',e:'⚡',en:true},
+    {h:'所长',p:'suǒ cháng',m:'what one is good at',e:'📦',en:true},
+    {h:'票价',p:'piào jià',m:'ticket price; fare; admission fee',e:'📦',en:true},
+    {h:'华人',p:'Huá rén',m:'ethnic Chinese person or people',e:'📦',en:true},
+    {h:'有的是',p:'yǒu de shì',m:'have plenty of',e:'📝',en:true},
+    {h:'皮包',p:'pí bāo',m:'handbag',e:'📦',en:true},
+    {h:'连续剧',p:'lián xù jù',m:'show in parts',e:'📦',en:true},
+    {h:'复印',p:'fù yìn',m:'to photocopy',e:'⚡',en:true},
+    {h:'图画',p:'tú huà',m:'drawing',e:'📦',en:true},
+    {h:'长处',p:'cháng chù',m:'good aspects',e:'📦',en:true},
+    {h:'绿茶',p:'lǜ chá',m:'green tea',e:'📦',en:true},
+    {h:'留学',p:'liú xué',m:'to study abroad',e:'⚡',en:true},
+    {h:'教材',p:'jiào cái',m:'teaching material',e:'📦',en:true},
+    {h:'书架',p:'shū jià',m:'bookshelf',e:'📦',en:true},
+    {h:'白菜',p:'bái cài',m:'pak choi',e:'📦',en:true},
+    {h:'普及',p:'pǔ jí',m:'popular',e:'⚡',en:true},
+    {h:'年初',p:'nián chū',m:'beginning of the year',e:'⏰',en:true},
+    {h:'试题',p:'shì tí',m:'test topic',e:'📦',en:true},
+    {h:'积极性',p:'jī jí xìng',m:'zeal',e:'📦',en:true},
+    {h:'初一',p:'chū yī',m:'New Year\'s Day',e:'📦',en:true},
+    {h:'奶茶',p:'nǎi chá',m:'milk tea',e:'📦',en:true},
+    {h:'银牌',p:'yín pái',m:'silver medal',e:'📦',en:true},
+    {h:'红茶',p:'hóng chá',m:'black tea',e:'📦',en:true},
+    {h:'人民币',p:'rén mín bì',m:'Renminbi (RMB)',e:'📦',en:true},
+    {h:'老头儿',p:'lǎo tóu r',m:'see 老头子',e:'📦',en:true},
+    {h:'划船',p:'huá chuán',m:'rowing boat',e:'⚡',en:true},
+    {h:'交费',p:'jiāo fèi',m:'to pay a fee',e:'⚡',en:true},
+    {h:'凉水',p:'liáng shuǐ',m:'cool water',e:'📦',en:true},
+    {h:'跳高',p:'tiào gāo',m:'high jump (athletics)',e:'⚡',en:true},
+    {h:'衣架',p:'yī jià',m:'clothes rack',e:'📦',en:true},
+    {h:'外文',p:'wài wén',m:'foreign language (written)',e:'📦',en:true},
+    {h:'短处',p:'duǎn chù',m:'fault',e:'📦',en:true},
+    {h:'空儿',p:'kòng r',m:'free time',e:'📦',en:true},
+    {h:'预习',p:'yù xí',m:'to prepare a lesson',e:'⚡',en:true},
+    {h:'跳远',p:'tiào yuǎn',m:'long jump (athletics)',e:'⚡',en:true},
+    {h:'京剧',p:'Jīng jù',m:'Beijing opera',e:'📦',en:true},
+    {h:'后年',p:'hòu nián',m:'the year after next',e:'⏰',en:true},
+    {h:'连忙',p:'lián máng',m:'at once',e:'➡️',en:true},
+    {h:'红酒',p:'hóng jiǔ',m:'red wine',e:'📝',en:true},
+  ],
+};
+const LEVEL_META = {
+  1: {title:'HSK 1', sub:'Cơ bản', color:'coral', emoji:'🌱'},
+  2: {title:'HSK 2', sub:'Sơ cấp', color:'sky',   emoji:'🌿'},
+  3: {title:'HSK 3', sub:'Trung cấp', color:'mint', emoji:'🌳'}
+};
+const TINTS = { coral:'#FFEFEF', sky:'#EAF6FD', mint:'#EAFAF3' };
+
+function toWord(e){ return {hanzi:e.h, pinyin:e.p, english:e.m, emoji:e.e, isEn:e.en}; }
+function levelWordList(level){ return HSK_DATA[level].map(toWord); }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function $(sel){ return document.querySelector(sel); }
+function $$(sel){ return Array.from(document.querySelectorAll(sel)); }
+function el(tag, cls, html){ const e = document.createElement(tag); if(cls) e.className = cls; if(html!==undefined) e.innerHTML = html; return e; }
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function chunk(arr, size){ const out=[]; for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size)); return out; }
+
+let toastTimer=null;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   PROGRESS STORAGE (v2 — mastery based)
+   ============================================================ */
+const STORAGE_KEY = 'zhLearnProgress_v2';
+function defaultProgress(){ return { lastVisit:null, streak:0, batchSize:10, words:{} }; }
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      return Object.assign(defaultProgress(), parsed, { words: Object.assign({}, parsed.words||{}) });
+    }
+    // Nhẹ nhàng giữ lại streak từ bản cũ (v1) nếu có, để không mất "lửa" học tập
+    const base = defaultProgress();
+    const oldRaw = localStorage.getItem('zhLearnProgress_v1');
+    if(oldRaw){
+      try{
+        const old = JSON.parse(oldRaw);
+        base.streak = old.streak || 0;
+        base.lastVisit = old.lastVisit || null;
+      }catch(e){ /* ignore */ }
+    }
+    return base;
+  }catch(e){
+    console.warn('Không đọc được tiến độ đã lưu, bắt đầu lại từ đầu.', e);
+    return defaultProgress();
+  }
+}
+function saveProgress(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }
+  catch(e){ console.warn('Không lưu được tiến độ (có thể bộ nhớ trình duyệt đầy hoặc bị chặn).', e); }
+}
+let progress = loadProgress();
+
+function touchStreak(){
+  const today = new Date().toDateString();
+  if(progress.lastVisit === today) return;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  progress.streak = (progress.lastVisit === y.toDateString()) ? progress.streak + 1 : 1;
+  progress.lastVisit = today;
+  saveProgress();
+}
+
+/* ---- mastery helpers ---- */
+function wordProg(hanzi){
+  if(!progress.words[hanzi]) progress.words[hanzi] = { passed: [] };
+  return progress.words[hanzi];
+}
+function markPassed(hanzi, format){
+  const wp = wordProg(hanzi);
+  if(!wp.passed.includes(format)){ wp.passed.push(format); saveProgress(); }
+}
+function isMastered(hanzi){
+  const wp = progress.words[hanzi];
+  return !!wp && wp.passed.length >= 2;
+}
+function masteryLevel(hanzi){
+  const wp = progress.words[hanzi];
+  if(!wp || wp.passed.length===0) return 0; // mới
+  if(wp.passed.length===1) return 1;        // đang học
+  return 2;                                  // đã thuộc
+}
+
+/* ---- batch helpers ---- */
+function batchesFor(level){
+  return chunk(levelWordList(level), progress.batchSize).map((words,i)=>({index:i, words}));
+}
+function batchMasteredCount(batch){ return batch.words.filter(w=>isMastered(w.hanzi)).length; }
+function isBatchMastered(batch){ return batch.words.length>0 && batchMasteredCount(batch) === batch.words.length; }
+function isBatchUnlocked(level, index){
+  if(index===0) return true;
+  const batches = batchesFor(level);
+  return isBatchMastered(batches[index-1]);
+}
+function getDistractors(primaryPool, fallbackPool, item, count){
+  let cand = shuffle(primaryPool.filter(w=>w.hanzi!==item.hanzi));
+  if(cand.length < count){
+    const have = new Set(cand.map(w=>w.hanzi));
+    const extra = shuffle(fallbackPool.filter(w=> w.hanzi!==item.hanzi && !have.has(w.hanzi)));
+    cand = cand.concat(extra);
+  }
+  return cand.slice(0, count);
+}
+
+/* ---- level / overall stats ---- */
+function levelStats(level){
+  const words = levelWordList(level);
+  const mastered = words.filter(w=>isMastered(w.hanzi)).length;
+  const batches = batchesFor(level);
+  const batchesMastered = batches.filter(isBatchMastered).length;
+  return {
+    mastered, total: words.length,
+    pct: words.length ? Math.round(mastered/words.length*100) : 0,
+    batchesMastered, batchesTotal: batches.length
+  };
+}
+function overallStats(){
+  let mastered=0, total=0;
+  [1,2,3].forEach(l=>{ const s = levelStats(l); mastered+=s.mastered; total+=s.total; });
+  return { mastered, total, pct: total ? Math.round(mastered/total*100) : 0 };
+}
+
+/* ============================================================
+   APP STATE + NAVIGATION
+   ============================================================ */
+let state = {
+  view: 'home',
+  level: null,
+  batchIndex: 0,
+  currentWords: [],
+  cardIndex: 0,
+  quiz: null,
+};
+
+function goTo(view){
+  state.view = view;
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  $('#view-'+view).classList.add('active');
+  $$('.nav-btn').forEach(b=> b.classList.toggle('active', b.dataset.nav===view));
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(view==='home') renderHome();
+  if(view==='level') renderBatchPicker();
+  if(view==='progress') renderProgress();
+}
+
+$$('[data-nav]').forEach(b=>{
+  b.addEventListener('click', ()=> goTo(b.dataset.nav));
+});
+
+/* ============================================================
+   HOME
+   ============================================================ */
+function renderHome(){
+  const grid = $('#level-grid'); grid.innerHTML='';
+  [1,2,3].forEach(level=>{
+    const meta = LEVEL_META[level];
+    const s = levelStats(level);
+    const card = el('button', 'level-card c-'+meta.color);
+    card.innerHTML = `
+      <div class="lv-top">
+        <div class="lv-badge">${meta.emoji}</div>
+        <div class="lv-info">
+          <h3>${meta.title}</h3>
+          <div class="lv-sub">${meta.sub} · ${s.total} từ · ${s.batchesTotal} nhóm</div>
+        </div>
+      </div>
+      <div class="lesson-mini-bar"><div class="lesson-mini-fill" style="width:${s.pct}%"></div></div>
+      <div class="bar-label" style="margin-top:6px;"><span>Đã thuộc ${s.mastered}/${s.total}</span><span>${s.pct}%</span></div>
+    `;
+    card.addEventListener('click', ()=> openLevel(level));
+    grid.appendChild(card);
+  });
+
+  const o = overallStats();
+  $('#home-bar-fill').style.width = o.pct+'%';
+  $('#home-bar-label').textContent = `Đã thuộc ${o.mastered}/${o.total} từ`;
+  $('#home-bar-pct').textContent = o.pct+'%';
+  $('#ring-btn').style.setProperty('--pct', o.pct);
+  $('#ring-pct').textContent = o.pct+'%';
+  $('#streak-count').textContent = progress.streak;
+}
+
+function openLevel(level){
+  state.level = level;
+  document.documentElement.style.setProperty('--tint', TINTS[LEVEL_META[level].color]);
+  goTo('level');
+}
+
+function renderBatchPicker(){
+  const level = state.level;
+  const meta = LEVEL_META[level];
+  const s = levelStats(level);
+  $('#level-title').textContent = `${meta.emoji} ${meta.title} · ${meta.sub}`;
+  $('#level-sub').textContent = `Đã thuộc ${s.mastered}/${s.total} từ · ${s.batchesMastered}/${s.batchesTotal} nhóm hoàn thành`;
+
+  const sizeRow = $('#batch-size-row'); sizeRow.innerHTML='';
+  [5,10,15,20].forEach(n=>{
+    const chip = el('button', 'size-chip'+(progress.batchSize===n?' active':''), n+' từ');
+    chip.addEventListener('click', ()=>{ progress.batchSize = n; saveProgress(); renderBatchPicker(); });
+    sizeRow.appendChild(chip);
+  });
+
+  const list = $('#batch-list'); list.innerHTML='';
+  const batches = batchesFor(level);
+  batches.forEach((batch,i)=>{
+    const unlocked = isBatchUnlocked(level,i);
+    const masteredCount = batchMasteredCount(batch);
+    const full = isBatchMastered(batch);
+    const pct = Math.round(masteredCount/batch.words.length*100);
+    const sample = batch.words.slice(0,4).map(w=>w.hanzi).join(' ');
+    const card = el('button', 'batch-card'+(unlocked?'':' locked')+(full?' mastered':''));
+    card.innerHTML = `
+      <div class="batch-num">${i+1}</div>
+      <div class="batch-info">
+        <div class="b-title">Nhóm ${i+1} · ${batch.words.length} từ</div>
+        <div class="b-sample">${sample}${batch.words.length>4?'…':''}</div>
+        <div class="lesson-mini-bar"><div class="lesson-mini-fill" style="width:${pct}%;background:${full?'var(--mint-dark)':'var(--sky-dark)'}"></div></div>
+      </div>
+      ${!unlocked ? '<div class="batch-lock">🔒</div>' : full ? '<div class="batch-check">✅</div>' : '<div class="batch-lock">›</div>'}
+    `;
+    if(unlocked) card.addEventListener('click', ()=> openBatch(level,i));
+    else card.disabled = true;
+    list.appendChild(card);
+  });
+}
+
+/* ============================================================
+   FLASHCARDS
+   ============================================================ */
+function openBatch(level, batchIndex){
+  state.level = level;
+  state.batchIndex = batchIndex;
+  state.cardIndex = 0;
+  state.currentWords = batchesFor(level)[batchIndex].words;
+  const meta = LEVEL_META[level];
+  document.documentElement.style.setProperty('--tint', TINTS[meta.color]);
+  $('#lesson-title').textContent = `Nhóm ${batchIndex+1} ${meta.emoji}`;
+  goTo('lesson');
+  renderCard();
+}
+
+function renderDots(){
+  const wrap = $('#lesson-dots'); wrap.innerHTML='';
+  state.currentWords.forEach((w,i)=>{
+    let cls = '';
+    if(i===state.cardIndex) cls = 'current';
+    else{
+      const lvl = masteryLevel(w.hanzi);
+      cls = lvl===2 ? 'mastered' : lvl===1 ? 'learning' : '';
+    }
+    wrap.appendChild(el('span','dot'+(cls?' '+cls:'')));
+  });
+}
+
+function renderCard(){
+  const w = state.currentWords[state.cardIndex];
+  $('#flashcard').classList.remove('flipped');
+  $('#fc-hanzi').textContent = w.hanzi;
+  $('#fc-pinyin').textContent = w.pinyin;
+  $('#fc-emoji').textContent = w.emoji;
+  $('#fc-english').innerHTML = w.english + (w.isEn ? ' <span class="en-tag">EN</span>' : '');
+  $('#lesson-counter').textContent = `${state.cardIndex+1} / ${state.currentWords.length}`;
+  $('#speak-feedback').textContent=''; $('#speak-feedback').className='speak-feedback';
+  $('#btn-next').textContent = (state.cardIndex === state.currentWords.length-1) ? 'Bắt đầu ôn tập 🎯' : 'Tiếp ➡';
+  renderDots();
+}
+
+$('#flashcard').addEventListener('click', ()=> $('#flashcard').classList.toggle('flipped'));
+$('#btn-prev').addEventListener('click', ()=>{ if(state.cardIndex>0){ state.cardIndex--; renderCard(); } });
+$('#btn-next').addEventListener('click', ()=>{
+  if(state.cardIndex < state.currentWords.length-1){ state.cardIndex++; renderCard(); }
+  else startBatchQuiz(state.level, state.batchIndex);
+});
+$('#lesson-back').addEventListener('click', ()=> goTo('level'));
+$('#quiz-back').addEventListener('click', ()=> goTo('level'));
+
+/* ---- audio (Web Speech API) ---- */
+const synth = window.speechSynthesis;
+let zhVoice = null;
+function pickVoice(){
+  const voices = synth.getVoices();
+  zhVoice = voices.find(v=>v.lang==='zh-CN') || voices.find(v=>v.lang && v.lang.startsWith('zh')) || null;
+}
+if(synth){ pickVoice(); synth.onvoiceschanged = pickVoice; }
+function speak(text){
+  if(!synth) return toast('Trình duyệt này không hỗ trợ phát âm 😢');
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'zh-CN'; u.rate = 0.85;
+  if(zhVoice) u.voice = zhVoice;
+  synth.speak(u);
+}
+$('#btn-listen').addEventListener('click', (e)=>{ e.stopPropagation(); speak(state.currentWords[state.cardIndex].hanzi); });
+
+/* ---- speech recognition (luyện nói) ---- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const canSpeak = !!SR;
+$('#btn-speak').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  const w = state.currentWords[state.cardIndex];
+  const fb = $('#speak-feedback');
+  if(!canSpeak){ fb.textContent = 'Trình duyệt không hỗ trợ nhận diện giọng nói'; fb.className='speak-feedback no'; return; }
+  fb.textContent = '🎙️ Đang nghe...'; fb.className='speak-feedback';
+  const rec = new SR();
+  rec.lang = 'zh-CN'; rec.maxAlternatives = 3;
+  rec.onresult = (ev)=>{
+    const said = Array.from(ev.results[0]).map(r=>r.transcript.replace(/[，。！？\s]/g,''));
+    const ok = said.some(s=> s.includes(w.hanzi) || w.hanzi.includes(s));
+    fb.textContent = ok ? '✅ Chuẩn rồi!' : `❌ Nghe ra: "${said[0]||'?'}" — thử lại nhé`;
+    fb.className = 'speak-feedback ' + (ok?'ok':'no');
+  };
+  rec.onerror = ()=>{ fb.textContent='Không nhận diện được, thử lại nhé'; fb.className='speak-feedback no'; };
+  rec.start();
+});
+
+/* ============================================================
+   STROKE ORDER MODAL (Hanzi Writer)
+   ============================================================ */
+let strokeWriters = [];
+function openStrokeModal(word){
+  $('#stroke-word-title').textContent = word.hanzi;
+  $('#stroke-word-sub').innerHTML = `${word.pinyin} · ${word.english}${word.isEn?' <span class="en-tag">EN</span>':''}`;
+  const row = $('#stroke-row'); row.innerHTML=''; strokeWriters = [];
+  const chars = Array.from(word.hanzi);
+  chars.forEach((ch,i)=>{
+    const box = el('div','stroke-target'); box.id = 'stroke-target-'+i;
+    row.appendChild(box);
+  });
+  $('#stroke-modal').classList.remove('hidden');
+  setTimeout(()=>{
+    chars.forEach((ch,i)=>{
+      try{
+        const writer = HanziWriter.create('stroke-target-'+i, ch, {
+          width:120, height:120, padding:8,
+          strokeAnimationSpeed:1, delayBetweenStrokes:200,
+          strokeColor:'#3D3452', radicalColor:'#FF9E9E'
+        });
+        strokeWriters.push(writer);
+      }catch(err){ console.warn('Không tải được dữ liệu nét chữ cho', ch, err); }
+    });
+  }, 30);
+}
+$('#btn-stroke').addEventListener('click', (e)=>{ e.stopPropagation(); openStrokeModal(state.currentWords[state.cardIndex]); });
+$('#stroke-close').addEventListener('click', ()=> $('#stroke-modal').classList.add('hidden'));
+$('#stroke-modal').addEventListener('click', (e)=>{ if(e.target.id==='stroke-modal') $('#stroke-modal').classList.add('hidden'); });
+$('#stroke-animate').addEventListener('click', ()=> strokeWriters.forEach(w=>{ try{ w.animateCharacter(); }catch(e){} }));
+$('#stroke-quiz').addEventListener('click', ()=> strokeWriters.forEach(w=>{ try{ w.quiz(); }catch(e){} }));
+
+/* ============================================================
+   QUIZ ENGINE (Quizizz-style: 3 vòng, học xong 2 dạng khác nhau = THUỘC)
+   ============================================================ */
+function startBatchQuiz(level, batchIndex, wordsOverride){
+  const allBatchWords = batchesFor(level)[batchIndex].words;
+  const words = (wordsOverride && wordsOverride.length) ? wordsOverride : allBatchWords;
+  state.quiz = {
+    level, batchIndex,
+    words: allBatchWords,     // toàn bộ từ của nhóm (để tính đã-mở-khoá-chưa)
+    poolWords: words,         // từ thực sự được hỏi trong lượt này (có thể là tập con khi "ôn nhanh")
+    reviewMode: !!(wordsOverride && wordsOverride.length),
+    mcQueue: shuffle(words), mcIndex: 0,
+    matchWords: shuffle(words).slice(0, Math.min(6, words.length)), matchSelA: null,
+    listenQueue: shuffle(words).slice(0, Math.min(6, words.length)), listenIndex: 0,
+    round: 0,
+    totalRight: 0, totalQuestions: 0
+  };
+  const meta = LEVEL_META[level];
+  $('#quiz-title').textContent = `${meta.emoji} HSK${level} · Nhóm ${batchIndex+1}` + (state.quiz.reviewMode ? ' (ôn nhanh)' : '');
+  goTo('quiz');
+  renderMC();
+}
+
+function nextRound(){
+  state.quiz.round++;
+  if(state.quiz.round===1) renderMatch();
+  else if(state.quiz.round===2) renderListen();
+  else renderResults();
+}
+
+/* ---- Vòng 1: Trắc nghiệm nghĩa (mc) ---- */
+function renderMC(){
+  const q = state.quiz;
+  if(q.mcIndex >= q.mcQueue.length){ nextRound(); return; }
+  $('#quiz-round-label').textContent = `Vòng 1/3 · Trắc nghiệm nghĩa (${q.mcIndex+1}/${q.mcQueue.length})`;
+  const item = q.mcQueue[q.mcIndex];
+  const wrong = getDistractors(q.words, levelWordList(q.level), item, 3);
+  const options = shuffle([item, ...wrong]);
+  const body = $('#quiz-body');
+  body.innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-prompt-hanzi">${item.hanzi}</div>
+      <div class="quiz-prompt-pinyin">${item.pinyin}</div>
+      <div class="quiz-instructions" style="margin-top:14px;">Từ này nghĩa là gì?</div>
+      <div class="option-list" id="mc-options"></div>
+    </div>`;
+  const wrap = $('#mc-options');
+  options.forEach(opt=>{
+    const b = el('button','option-btn');
+    b.dataset.hanzi = opt.hanzi;
+    b.innerHTML = opt.english + (opt.isEn?' <span class="en-tag">EN</span>':'');
+    b.addEventListener('click', ()=> handleMCAnswer(b, opt, item));
+    wrap.appendChild(b);
+  });
+}
+function handleMCAnswer(btn, opt, correctItem){
+  if(btn.disabled) return;
+  $$('#mc-options .option-btn').forEach(b=> b.disabled = true);
+  const isRight = opt.hanzi === correctItem.hanzi;
+  btn.classList.add(isRight?'correct':'incorrect');
+  if(!isRight) $$('#mc-options .option-btn').forEach(b=>{ if(b.dataset.hanzi===correctItem.hanzi) b.classList.add('correct'); });
+  state.quiz.totalQuestions++;
+  if(isRight){ state.quiz.totalRight++; markPassed(correctItem.hanzi, 'mc'); }
+  speak(correctItem.hanzi);
+  setTimeout(()=>{ state.quiz.mcIndex++; renderMC(); }, 900);
+}
+
+/* ---- Vòng 2: Ghép cặp (match) ---- */
+function renderMatch(){
+  const q = state.quiz;
+  $('#quiz-round-label').textContent = `Vòng 2/3 · Ghép cặp (${q.matchWords.length} từ)`;
+  const hanziTiles = shuffle(q.matchWords.map(w=>({type:'h', word:w})));
+  const engTiles = shuffle(q.matchWords.map(w=>({type:'e', word:w})));
+  const body = $('#quiz-body');
+  body.innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-instructions">Chạm 1 ô Hán tự rồi chạm nghĩa tương ứng</div>
+      <div class="match-grid" id="match-hanzi"></div>
+      <div class="match-grid" id="match-eng" style="margin-top:10px;"></div>
+    </div>`;
+  const hWrap = $('#match-hanzi'), eWrap = $('#match-eng');
+  hanziTiles.forEach(t=>{
+    const b = el('button','match-tile hanzi-tile', t.word.hanzi);
+    b.dataset.hanzi = t.word.hanzi; b.dataset.type='h';
+    b.addEventListener('click', ()=> selectMatchTile(b, t));
+    hWrap.appendChild(b);
+  });
+  engTiles.forEach(t=>{
+    const b = el('button','match-tile', t.word.english + (t.word.isEn?' <span class="en-tag">EN</span>':''));
+    b.dataset.hanzi = t.word.hanzi; b.dataset.type='e';
+    b.addEventListener('click', ()=> selectMatchTile(b, t));
+    eWrap.appendChild(b);
+  });
+  q.matchSelA = null;
+}
+function selectMatchTile(btn, tile){
+  const q = state.quiz;
+  if(btn.classList.contains('matched') || btn.classList.contains('selected')) return;
+  if(!q.matchSelA){
+    q.matchSelA = {btn, tile};
+    btn.classList.add('selected');
+    return;
+  }
+  if(q.matchSelA.tile.type === tile.type){
+    // chọn lại cùng loại: đổi lựa chọn
+    q.matchSelA.btn.classList.remove('selected');
+    q.matchSelA = {btn, tile};
+    btn.classList.add('selected');
+    return;
+  }
+  const a = q.matchSelA;
+  const isMatch = a.tile.word.hanzi === tile.word.hanzi;
+  if(isMatch){
+    a.btn.classList.remove('selected'); a.btn.classList.add('matched');
+    btn.classList.add('matched');
+    markPassed(tile.word.hanzi, 'match');
+    q.totalRight++; q.totalQuestions++;
+    q.matchSelA = null;
+    const allMatched = $$('.match-tile').every(t=> t.classList.contains('matched'));
+    if(allMatched) setTimeout(nextRound, 500);
+  } else {
+    q.totalQuestions++;
+    btn.classList.add('mismatch'); a.btn.classList.add('mismatch');
+    setTimeout(()=>{
+      btn.classList.remove('mismatch'); a.btn.classList.remove('mismatch','selected');
+      q.matchSelA = null;
+    }, 500);
+  }
+}
+
+/* ---- Vòng 3: Nghe chọn nghĩa (listen) ---- */
+function renderListen(){
+  const q = state.quiz;
+  if(q.listenIndex >= q.listenQueue.length){ nextRound(); return; }
+  $('#quiz-round-label').textContent = `Vòng 3/3 · Nghe và chọn (${q.listenIndex+1}/${q.listenQueue.length})`;
+  const item = q.listenQueue[q.listenIndex];
+  const wrong = getDistractors(q.words, levelWordList(q.level), item, 3);
+  const options = shuffle([item, ...wrong]);
+  const body = $('#quiz-body');
+  body.innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-instructions">Nghe rồi chọn đúng nghĩa</div>
+      <button class="listen-btn-big" id="listen-play">🔊</button>
+      <div class="option-list" id="listen-options"></div>
+    </div>`;
+  $('#listen-play').addEventListener('click', ()=> speak(item.hanzi));
+  speak(item.hanzi);
+  const wrap = $('#listen-options');
+  options.forEach(opt=>{
+    const b = el('button','option-btn');
+    b.dataset.hanzi = opt.hanzi;
+    b.innerHTML = opt.english + (opt.isEn?' <span class="en-tag">EN</span>':'');
+    b.addEventListener('click', ()=> handleListenAnswer(b, opt, item));
+    wrap.appendChild(b);
+  });
+}
+function handleListenAnswer(btn, opt, correctItem){
+  if(btn.disabled) return;
+  $$('#listen-options .option-btn').forEach(b=> b.disabled = true);
+  const isRight = opt.hanzi === correctItem.hanzi;
+  btn.classList.add(isRight?'correct':'incorrect');
+  if(!isRight) $$('#listen-options .option-btn').forEach(b=>{ if(b.dataset.hanzi===correctItem.hanzi) b.classList.add('correct'); });
+  state.quiz.totalQuestions++;
+  if(isRight){ state.quiz.totalRight++; markPassed(correctItem.hanzi, 'listen'); }
+  setTimeout(()=>{ state.quiz.listenIndex++; renderListen(); }, 800);
+}
+
+/* ---- Kết quả ---- */
+function renderResults(){
+  const q = state.quiz;
+  const pct = q.totalQuestions ? Math.round((q.totalRight/q.totalQuestions)*100) : 0;
+  const stars = pct>=90?'⭐⭐⭐':pct>=70?'⭐⭐':pct>=40?'⭐':'✨';
+  const masteredNow = q.words.filter(w=>isMastered(w.hanzi)).length;
+  const totalW = q.words.length;
+  const batchDone = masteredNow === totalW;
+  $('#quiz-round-label').textContent = 'Hoàn thành! 🎉';
+  $('#quiz-body').innerHTML = `
+    <div class="quiz-card results-panel">
+      <div class="results-emoji">${batchDone ? '🏆' : (pct>=60?'👍':'💪')}</div>
+      <div class="results-score">Đúng ${pct}%</div>
+      <div class="results-stars">${stars}</div>
+      <div class="mastery-summary">Đã thuộc <b>${masteredNow}/${totalW}</b> từ trong nhóm này${batchDone ? ' — mở khoá nhóm tiếp theo rồi! 🎉' : ''}</div>
+      <div class="btn-row">
+        <button class="btn btn-outline btn-block" id="quiz-again">Làm lại</button>
+        <button class="btn btn-primary btn-block" id="quiz-home">${batchDone ? 'Xong ✅' : 'Về danh sách nhóm'}</button>
+      </div>
+      ${!batchDone ? '<button class="btn btn-mint btn-block" id="quiz-review" style="margin-top:10px;">🔁 Ôn nhanh từ chưa thuộc</button>' : ''}
+    </div>`;
+  $('#quiz-again').addEventListener('click', ()=> startBatchQuiz(q.level, q.batchIndex));
+  $('#quiz-home').addEventListener('click', ()=> goTo('level'));
+  const reviewBtn = $('#quiz-review');
+  if(reviewBtn) reviewBtn.addEventListener('click', ()=>{
+    const remaining = q.words.filter(w=>!isMastered(w.hanzi));
+    startBatchQuiz(q.level, q.batchIndex, remaining);
+  });
+  toast(batchDone ? 'Tuyệt vời! Đã thuộc hết nhóm này 🎉' : 'Đã lưu tiến độ của bạn!');
+}
+
+/* ============================================================
+   PROGRESS VIEW
+   ============================================================ */
+function renderProgress(){
+  const o = overallStats();
+  $('#stat-words').textContent = o.mastered;
+  $('#stat-streak').textContent = progress.streak;
+  $('#stat-quiz').textContent = o.pct+'%';
+  const list = $('#progress-list'); list.innerHTML='';
+  [1,2,3].forEach(level=>{
+    const meta = LEVEL_META[level];
+    const s = levelStats(level);
+    const row = el('div','progress-row');
+    row.innerHTML = `
+      <div class="progress-row-top"><span>${meta.emoji} ${meta.title} · ${meta.sub}</span><span>${s.pct}%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${s.pct}%"></div></div>
+      <div class="bar-label"><span>Đã thuộc ${s.mastered}/${s.total} từ</span><span>${s.batchesMastered}/${s.batchesTotal} nhóm xong</span></div>
+    `;
+    list.appendChild(row);
+  });
+}
+$('#btn-reset').addEventListener('click', ()=>{
+  if(!confirm('Xoá toàn bộ tiến độ đã lưu trên trình duyệt này? Không thể hoàn tác.')) return;
+  progress = defaultProgress();
+  saveProgress();
+  renderProgress(); renderHome();
+  toast('Đã đặt lại tiến độ.');
+});
+
+/* ============================================================
+   CHAT BUDDY (bot luyện tập ngoại tuyến, dựa trên từ khoá)
+   ============================================================ */
+const CHAT_WORDS = levelWordList(1); // dùng bộ từ HSK1 (đã gồm chào hỏi/số đếm/món ăn) làm "từ khoá"
+function findWordByHanzi(msg){ return CHAT_WORDS.find(w=> msg.includes(w.hanzi)); }
+function findWordByMeaningVi(msg){
+  const low = msg.toLowerCase();
+  return CHAT_WORDS.find(w=> !w.isEn && low.includes(w.english.toLowerCase()));
+}
+function findNumber(msg){
+  const m = msg.match(/(?:^|\D)([0-9]|10)(?:\D|$)/);
+  return m ? parseInt(m[1],10) : null;
+}
+const NUM_HANZI = ['零','一','二','三','四','五','六','七','八','九','十'];
+
+function botReply(userMsg){
+  const msg = userMsg.trim();
+  if(!msg) return null;
+  const num = findNumber(msg);
+  if(num!==null && num>=0 && num<=10){
+    const hz = NUM_HANZI[num];
+    return {cn:hz, py:'', text:`${hz} là số ${num} đó! 🔢`};
+  }
+  const byHanzi = findWordByHanzi(msg);
+  if(byHanzi) return {cn:byHanzi.hanzi, py:byHanzi.pinyin, text:`${byHanzi.hanzi} (${byHanzi.pinyin}) nghĩa là "${byHanzi.english}" 😊`};
+  const byMeaning = findWordByMeaningVi(msg);
+  if(byMeaning) return {cn:byMeaning.hanzi, py:byMeaning.pinyin, text:`"${byMeaning.english}" tiếng Trung là ${byMeaning.hanzi} (${byMeaning.pinyin})`};
+  const greetings = ['xin chào','chào','hi','hello','嗨'];
+  if(greetings.some(g=>msg.toLowerCase().includes(g))) return {cn:'你好', py:'nǐ hǎo', text:'你好! (nǐ hǎo) Rất vui được gặp bạn! 👋'};
+  const thanks = ['cảm ơn','cám ơn','thanks','thank'];
+  if(thanks.some(g=>msg.toLowerCase().includes(g))) return {cn:'不客气', py:'bú kèqi', text:'不客气! (bú kèqi) Không có gì đâu 😊'};
+  return {cn:'🤔', py:'', text:'Mình chưa nhận ra từ này trong các từ đã học ở HSK1. Thử gõ một từ tiếng Trung, một số 0-10, hoặc "xin chào" xem!'};
+}
+
+function addBubble(kind, cn, py, text){
+  const log = $('#chat-log');
+  const b = el('div', 'bubble bubble-'+kind);
+  let html='';
+  if(cn) html += `<div class="cn">${cn}</div>`;
+  if(py) html += `<div class="py">${py}</div>`;
+  html += `<div>${text}</div>`;
+  b.innerHTML = html;
+  log.appendChild(b);
+  log.scrollTop = log.scrollHeight;
+}
+function sendChat(msg){
+  if(!msg || !msg.trim()) return;
+  addBubble('user', '', '', msg);
+  const r = botReply(msg);
+  setTimeout(()=>{ if(r){ addBubble('bot', r.cn, r.py, r.text); if(r.cn && r.cn!=='🤔') speak(r.cn); } }, 300);
+}
+$('#chat-send').addEventListener('click', ()=>{
+  const inp = $('#chat-input'); sendChat(inp.value); inp.value='';
+});
+$('#chat-input').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){ const inp=$('#chat-input'); sendChat(inp.value); inp.value=''; }
+});
+function initChat(){
+  addBubble('bot','你好','nǐ hǎo','Chào bạn! Gõ hoặc nói một từ tiếng Trung/tiếng Việt để mình dịch nhé.');
+  const chips = ['你好','谢谢','再见','一','五','十','米饭','苹果'];
+  const row = $('#chip-row'); row.innerHTML='';
+  chips.forEach(c=>{
+    const chip = el('button','chip', c);
+    chip.addEventListener('click', ()=> sendChat(c));
+    row.appendChild(chip);
+  });
+}
+$('#chat-mic').addEventListener('click', ()=>{
+  const micBtn = $('#chat-mic');
+  if(!canSpeak){ toast('Trình duyệt không hỗ trợ nhận diện giọng nói'); return; }
+  const rec = new SR(); rec.lang='zh-CN'; rec.maxAlternatives=3;
+  micBtn.classList.add('listening');
+  rec.onresult = (ev)=>{ const said = ev.results[0][0].transcript; sendChat(said); };
+  rec.onerror = ()=> toast('Không nhận diện được giọng nói, thử lại nhé');
+  rec.onend = ()=> micBtn.classList.remove('listening');
+  rec.start();
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+touchStreak();
+renderHome();
+initChat();
+if(!canSpeak) toast('Gợi ý: dùng Chrome trên máy tính/Android để có tính năng luyện nói 🎤');
+
+})();
+</script>
+</body>
+</html>
