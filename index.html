@@ -65,11 +65,11 @@ p{margin:0;}
   min-height:100vh;
   display:flex;
   flex-direction:column;
-  padding-bottom:84px; /* room for bottom nav */
+  padding-bottom:calc(116px + env(safe-area-inset-bottom)); /* chừa chỗ cho thanh điều hướng dưới (cả mobile lẫn desktop) */
   position:relative;
 }
 @media(min-width:860px){
-  #app{max-width:720px;padding-bottom:32px;}
+  #app{max-width:720px;}
 }
 
 /* Topbar */
@@ -136,7 +136,7 @@ main{flex:1;padding:6px 20px 20px;}
   display:flex;flex-direction:column;align-items:center;gap:2px;
   font-family:var(--font-ui);font-weight:700;font-size:11px;
   color:var(--text-soft);
-  padding:6px 14px;border-radius:14px;
+  padding:6px 4px;flex:1;max-width:96px;border-radius:14px;
   transition:background .2s, color .2s, transform .15s;
 }
 .nav-btn span.ic{font-size:20px;}
@@ -451,6 +451,34 @@ main{flex:1;padding:6px 20px 20px;}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
 }
+
+/* ---- Trang chủ mới: bước tiếp theo / mục tiêu ngày / lộ trình ---- */
+html{scroll-padding-bottom:120px;}
+.next-card{background:linear-gradient(135deg,var(--coral-tint),var(--lavender-tint));border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.nc-label{font-family:var(--font-ui);font-weight:800;font-size:12px;color:var(--coral-dark);margin-bottom:10px;}
+.nc-main{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.nc-ic{width:50px;height:50px;border-radius:16px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:24px;font-family:var(--font-hanzi);flex-shrink:0;}
+.nc-title{font-family:var(--font-ui);font-weight:800;font-size:16px;}
+.nc-sub{font-size:12px;color:var(--text-soft);font-family:var(--font-ui);font-weight:700;margin-top:2px;}
+.link-btn{background:none;border:none;color:var(--text-soft);font-family:var(--font-ui);font-weight:700;font-size:12.5px;margin-top:10px;width:100%;padding:6px;}
+.goal-card{background:var(--surface);border-radius:var(--r-lg);padding:16px 18px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.gc-top{display:flex;justify-content:space-between;font-family:var(--font-ui);font-weight:800;font-size:14px;margin-bottom:10px;}
+.gc-note{font-size:11.5px;color:var(--text-soft);line-height:1.5;margin:10px 0;}
+.goal-card .batch-size-row{margin-top:6px;}
+.data-note{background:var(--sky-tint);border-radius:var(--r-md);margin-bottom:14px;}
+.data-note summary{padding:12px 14px;font-family:var(--font-ui);font-weight:700;font-size:12.5px;color:#2d5573;cursor:pointer;}
+.data-note .info-banner{margin:0;background:none;padding-top:0;}
+.vocab-hint{font-size:13px;color:var(--text-soft);line-height:1.55;margin:0 0 14px;}
+.path-list{display:flex;flex-direction:column;gap:10px;position:relative;}
+.path-step{display:flex;align-items:center;gap:12px;background:var(--surface);border:2px solid transparent;border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--shadow-sm);text-align:left;width:100%;}
+.path-step.current{border-color:var(--coral);}
+.path-step.done{opacity:.8;}
+.ps-ic{width:44px;height:44px;border-radius:14px;background:var(--lavender-tint);display:flex;align-items:center;justify-content:center;font-size:21px;font-family:var(--font-hanzi);flex-shrink:0;}
+.path-step.done .ps-ic{background:var(--mint-tint);}
+.ps-title{font-family:var(--font-ui);font-weight:800;font-size:14px;}
+.ps-sub{font-size:11.5px;color:var(--text-soft);font-family:var(--font-ui);font-weight:700;margin-top:1px;}
+.ps-state{margin-left:auto;font-size:18px;flex-shrink:0;}
+.ps-badge{font-size:10px;font-weight:800;color:#fff;background:var(--coral-dark);border-radius:8px;padding:2px 7px;margin-left:6px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -479,12 +507,15 @@ main{flex:1;padding:6px 20px 20px;}
     <section class="view active" id="view-home">
       <div class="hero">
         <h2>你好! Nǐ hǎo! 👋</h2>
-        <p>Chọn cấp độ HSK bên dưới. Từ vựng được chia thành từng <strong>nhóm nhỏ</strong> — học xong một nhóm, bạn cần "thuộc" (trả lời đúng ở 2 dạng bài khác nhau) hết các từ trong nhóm đó thì nhóm tiếp theo mới mở khoá.</p>
+        <p>Mỗi ngày học một chút: làm theo <strong>bước tiếp theo</strong> bên dưới, rồi ôn các từ đến hạn.</p>
         <div class="hero-progress">
           <div class="bar-track"><div class="bar-fill" id="home-bar-fill" style="width:0%"></div></div>
           <div class="bar-label"><span id="home-bar-label">Đã thuộc 0/0 từ</span><span id="home-bar-pct">0%</span></div>
         </div>
       </div>
+
+      <div class="next-card" id="next-card"></div>
+      <div class="goal-card" id="goal-card"></div>
 
       <div class="due-banner hidden" id="due-banner">
         <div>
@@ -494,12 +525,17 @@ main{flex:1;padding:6px 20px 20px;}
         <button class="btn btn-primary" id="due-banner-btn">Ôn ngay</button>
       </div>
 
-      <div class="info-banner">ℹ️ Từ vựng theo chuẩn <b>HSK 3.0 (2021)</b>, tổng hợp từ nguồn mở đã đối chiếu CC‑CEDICT. Phần lớn từ mới hiển thị nghĩa <b>tiếng Anh</b> (nhãn <span class="en-tag">EN</span>) vì dịch tay ~3.100 từ sang tiếng Việt cho chính xác 100% là điều mình chưa thể tự xác minh — riêng các từ giao tiếp quen thuộc vẫn có nghĩa tiếng Việt. <b>Câu ví dụ</b> đã có đủ cho <b>toàn bộ 512/512 từ HSK1</b> (HSK2‑4 đang bổ sung dần); <b>mẹo ghi nhớ mặt chữ</b> (trong mục luyện viết ✍️) có bản dịch tiếng Việt cho toàn bộ chữ Hán trong HSK1.</div>
+      <details class="data-note"><summary>ℹ️ Về nguồn dữ liệu &amp; mức độ tin cậy</summary>
+      <div class="info-banner">ℹ️ Từ vựng theo chuẩn <b>HSK 3.0 (2021)</b>, tổng hợp từ nguồn mở đã đối chiếu CC‑CEDICT. Phần lớn từ mới hiển thị nghĩa <b>tiếng Anh</b> (nhãn <span class="en-tag">EN</span>) vì dịch tay ~3.100 từ sang tiếng Việt cho chính xác 100% là điều mình chưa thể tự xác minh — riêng các từ giao tiếp quen thuộc vẫn có nghĩa tiếng Việt. <b>Câu ví dụ</b> (do AI biên soạn, không trích từ giáo trình) đã có đủ cho <b>toàn bộ HSK1 (512/512)</b> và <b>HSK2 (750/750)</b>, HSK3 đã có một phần (180/953), HSK3‑4 đang bổ sung dần; <b>mẹo ghi nhớ mặt chữ</b> (trong mục luyện viết ✍️) có bản dịch tiếng Việt cho toàn bộ chữ Hán trong HSK1.</div>
+      </details>
+    </section>
 
-      <div class="section-title">📚 Cấp độ HSK</div>
-      <div class="level-grid" id="level-grid"></div>
-
-      <div class="section-title">📖 Học thêm (nền tảng trước khi vào từ vựng)</div>
+    <!-- ============ PATH (LỘ TRÌNH NGƯỜI MỚI) ============ -->
+    <section class="view" id="view-path">
+      <div class="section-title" style="margin-top:4px;">🧭 Lộ trình người mới</div>
+      <div class="info-banner">ℹ️ Thứ tự các bước dưới đây là gợi ý do mình sắp xếp để dễ bắt đầu (xen kẽ kiến thức nền với từ vựng), <b>không phải</b> lộ trình chính thức của HSK. Bạn có thể bấm vào bất kỳ bước nào, không bị khoá. Bước “Phát âm / Bộ thủ / Ngữ pháp” được tích ✓ khi bạn đã mở xem; bước từ vựng được tích ✓ khi đã thuộc hết các từ trong đoạn đó.</div>
+      <div class="path-list" id="path-list"></div>
+      <div class="section-title">📖 Kiến thức nền (mở bất cứ lúc nào)</div>
       <div class="learn-grid">
         <button class="learn-card" data-nav="phonetics">
           <div class="lc-icon">🔤</div>
@@ -516,10 +552,17 @@ main{flex:1;padding:6px 20px 20px;}
       </div>
     </section>
 
+    <!-- ============ VOCAB (TỪ VỰNG HSK) ============ -->
+    <section class="view" id="view-vocab">
+      <div class="section-title" style="margin-top:4px;">📚 Từ vựng HSK</div>
+      <p class="vocab-hint">Từ vựng chia thành từng <strong>nhóm nhỏ</strong>. Bạn cần “thuộc” (trả lời đúng ở 2 dạng bài khác nhau) hết các từ trong một nhóm thì nhóm tiếp theo mới mở khoá.</p>
+      <div class="level-grid" id="level-grid"></div>
+    </section>
+
     <!-- ============ PHONETICS ============ -->
     <section class="view" id="view-phonetics">
       <div class="lesson-header">
-        <button class="back-btn" data-nav="home" aria-label="Quay lại">←</button>
+        <button class="back-btn" data-nav="path" aria-label="Quay lại">←</button>
         <div class="lesson-header-title"><h2>🔤 Phát âm cơ bản</h2><p>Thanh điệu · phụ âm đầu · vần</p></div>
       </div>
       <div class="info-banner">ℹ️ Đây là bảng tổng hợp phát âm tiếng Trung phổ thông (Putonghua) theo hệ pinyin chuẩn — kiến thức nền tảng, không phải nội dung tự soạn. Phần gợi ý "gần giống tiếng Việt" chỉ mang tính tương đối để dễ hình dung, không phải phát âm chính xác 100%; nên nghe bằng nút 🔊 là chính.</div>
@@ -537,7 +580,7 @@ main{flex:1;padding:6px 20px 20px;}
     <!-- ============ RADICALS ============ -->
     <section class="view" id="view-radicals">
       <div class="lesson-header">
-        <button class="back-btn" data-nav="home" aria-label="Quay lại">←</button>
+        <button class="back-btn" data-nav="path" aria-label="Quay lại">←</button>
         <div class="lesson-header-title"><h2>部 Bộ thủ thường gặp</h2><p>Học theo "linh kiện" thay vì học vẹt từng chữ</p></div>
       </div>
       <div class="info-banner">ℹ️ Danh sách bộ thủ (部首) và ý nghĩa là kiến thức Hán tự chuẩn. Các chữ ví dụ được lấy trực tiếp từ đúng dữ liệu mẹo ghi nhớ đang dùng trong app (mục ✍️ ở mỗi thẻ từ), không phải chữ ngẫu nhiên, để bạn tra lại dễ dàng.</div>
@@ -547,7 +590,7 @@ main{flex:1;padding:6px 20px 20px;}
     <!-- ============ GRAMMAR ============ -->
     <section class="view" id="view-grammar">
       <div class="lesson-header">
-        <button class="back-btn" data-nav="home" aria-label="Quay lại">←</button>
+        <button class="back-btn" data-nav="path" aria-label="Quay lại">←</button>
         <div class="lesson-header-title"><h2>📐 Ngữ pháp cơ bản</h2><p>Vài cấu trúc câu hay gặp nhất ở HSK1-2</p></div>
       </div>
       <div class="info-banner">ℹ️ Các điểm ngữ pháp và câu ví dụ dưới đây do mình tự biên soạn để minh hoạ, không trích từ giáo trình cụ thể nào — nếu học nghiêm túc, bạn nên đối chiếu thêm với giáo trình HSK chính thức.</div>
@@ -566,7 +609,7 @@ main{flex:1;padding:6px 20px 20px;}
     <!-- ============ HSK LEVEL → BATCH PICKER ============ -->
     <section class="view" id="view-level">
       <div class="lesson-header">
-        <button class="back-btn" data-nav="home" aria-label="Quay lại">←</button>
+        <button class="back-btn" data-nav="vocab" aria-label="Quay lại">←</button>
         <div class="lesson-header-title">
           <h2 id="level-title">HSK 1</h2>
           <p id="level-sub">0/0 từ đã thuộc</p>
@@ -633,7 +676,7 @@ main{flex:1;padding:6px 20px 20px;}
       <div class="section-title" style="margin-top:4px;">📈 Tiến độ của bạn</div>
       <div class="stat-grid">
         <div class="stat-card"><div class="num" id="stat-words">0</div><div class="lbl">Từ đã thuộc</div></div>
-        <div class="stat-card"><div class="num" id="stat-streak">0</div><div class="lbl">Chuỗi ngày học</div></div>
+        <div class="stat-card"><div class="num" id="stat-streak">0</div><div class="lbl">Chuỗi ngày đạt mục tiêu</div></div>
         <div class="stat-card"><div class="num" id="stat-quiz">0%</div><div class="lbl">Tỉ lệ hoàn thành</div></div>
       </div>
       <div id="progress-list"></div>
@@ -658,6 +701,8 @@ main{flex:1;padding:6px 20px 20px;}
 
   <nav class="bottom-nav">
     <button class="nav-btn active" data-nav="home"><span class="ic">🏠</span>Trang chủ</button>
+    <button class="nav-btn" data-nav="path"><span class="ic">🧭</span>Lộ trình</button>
+    <button class="nav-btn" data-nav="vocab"><span class="ic">📚</span>Từ vựng</button>
     <button class="nav-btn" data-nav="progress"><span class="ic">📈</span>Tiến độ</button>
     <button class="nav-btn" data-nav="chat"><span class="ic">💬</span>Trò chuyện</button>
   </nav>
@@ -5600,6 +5645,936 @@ const HSK_DATA = {
   '男孩儿':{zh:'那个男孩儿是我弟弟。',py:'Nàge nánháir shì wǒ dìdi.',vi:'Cậu bé đó là em trai tôi.'},
   '一下儿':{zh:'请等一下儿。',py:'Qǐng děng yíxiàr.',vi:'Xin đợi một chút.'},
   '有一些':{zh:'桌子上有一些书。',py:'Zhuōzi shang yǒu yìxiē shū.',vi:'Trên bàn có một số cuốn sách.'},
+  '啊':{zh:'啊，我知道了！',py:'À, wǒ zhīdào le!',vi:'À, tôi biết rồi!'},
+  '让':{zh:'妈妈让我早点回家。',py:'Māma ràng wǒ zǎo diǎn huí jiā.',vi:'Mẹ bảo tôi về nhà sớm.'},
+  '但':{zh:'他很累，但还在工作。',py:'Tā hěn lèi, dàn hái zài gōngzuò.',vi:'Anh ấy rất mệt nhưng vẫn đang làm việc.'},
+  '自己':{zh:'这是我自己做的。',py:'Zhè shì wǒ zìjǐ zuò de.',vi:'Đây là tôi tự làm.'},
+  '得':{zh:'他得了第一名。',py:'Tā déle dì-yī míng.',vi:'Anh ấy đã giành được giải nhất.'},
+  '可以':{zh:'我可以进来吗？',py:'Wǒ kěyǐ jìnlái ma?',vi:'Tôi có thể vào được không?'},
+  '为':{zh:'大家都为他高兴。',py:'Dàjiā dōu wèi tā gāoxìng.',vi:'Mọi người đều vui thay cho anh ấy.'},
+  '已经':{zh:'我已经吃饭了。',py:'Wǒ yǐjīng chīfàn le.',vi:'Tôi ăn cơm rồi.'},
+  '这样':{zh:'你不应该这样做。',py:'Nǐ bù yīnggāi zhèyàng zuò.',vi:'Bạn không nên làm như vậy.'},
+  '如果':{zh:'如果你忙，就别来了。',py:'Rúguǒ nǐ máng, jiù bié lái le.',vi:'Nếu bạn bận thì đừng đến nữa.'},
+  '因为':{zh:'我没去，因为我生病了。',py:'Wǒ méi qù, yīnwèi wǒ shēngbìng le.',vi:'Tôi không đi vì tôi bị ốm.'},
+  '又':{zh:'他今天又迟到了。',py:'Tā jīntiān yòu chídào le.',vi:'Hôm nay anh ấy lại đến muộn.'},
+  '只':{zh:'我只有一个妹妹。',py:'Wǒ zhǐ yǒu yí gè mèimei.',vi:'Tôi chỉ có một em gái.'},
+  '问题':{zh:'这个问题很难。',py:'Zhège wèntí hěn nán.',vi:'Câu hỏi này rất khó.'},
+  '它':{zh:'这只猫，它很可爱。',py:'Zhè zhī māo, tā hěn kě\u2019ài.',vi:'Con mèo này, nó rất dễ thương.'},
+  '但是':{zh:'我想去，但是没有时间。',py:'Wǒ xiǎng qù, dànshì méiyǒu shíjiān.',vi:'Tôi muốn đi, nhưng không có thời gian.'},
+  '该':{zh:'你该休息了。',py:'Nǐ gāi xiūxi le.',vi:'Bạn nên nghỉ ngơi rồi đấy.'},
+  '更':{zh:'今天比昨天更热。',py:'Jīntiān bǐ zuótiān gèng rè.',vi:'Hôm nay nóng hơn hôm qua.'},
+  '可能':{zh:'他可能不知道。',py:'Tā kěnéng bù zhīdào.',vi:'Có thể anh ấy không biết.'},
+  '才':{zh:'我昨天才知道这件事。',py:'Wǒ zuótiān cái zhīdào zhè jiàn shì.',vi:'Đến hôm qua tôi mới biết việc này.'},
+  '像':{zh:'她长得像妈妈。',py:'Tā zhǎng de xiàng māma.',vi:'Cô ấy trông giống mẹ.'},
+  '当':{zh:'他想当老师。',py:'Tā xiǎng dāng lǎoshī.',vi:'Anh ấy muốn làm giáo viên.'},
+  '所以':{zh:'天冷，所以我穿了大衣。',py:'Tiān lěng, suǒyǐ wǒ chuānle dàyī.',vi:'Trời lạnh nên tôi đã mặc áo khoác.'},
+  '那么':{zh:'别那么说。',py:'Bié nàme shuō.',vi:'Đừng nói như vậy.'},
+  '向':{zh:'他向我笑了笑。',py:'Tā xiàng wǒ xiàole xiào.',vi:'Anh ấy cười với tôi.'},
+  '这么':{zh:'你怎么这么忙？',py:'Nǐ zěnme zhème máng?',vi:'Sao bạn bận thế?'},
+  '认为':{zh:'我认为这是对的。',py:'Wǒ rènwéi zhè shì duì de.',vi:'Tôi cho rằng điều này là đúng.'},
+  '应该':{zh:'你应该多喝水。',py:'Nǐ yīnggāi duō hē shuǐ.',vi:'Bạn nên uống nhiều nước.'},
+  '带':{zh:'出门要带手机。',py:'Chūmén yào dài shǒujī.',vi:'Ra ngoài phải mang theo điện thoại.'},
+  '位':{zh:'这位是我的老师。',py:'Zhè wèi shì wǒ de lǎoshī.',vi:'Vị này là thầy giáo của tôi.'},
+  '大家':{zh:'大家好！',py:'Dàjiā hǎo!',vi:'Chào mọi người!'},
+  '发现':{zh:'我发现了一个好地方。',py:'Wǒ fāxiànle yí gè hǎo dìfang.',vi:'Tôi đã phát hiện ra một nơi tốt.'},
+  '一定':{zh:'我明天一定来。',py:'Wǒ míngtiān yídìng lái.',vi:'Ngày mai tôi nhất định sẽ đến.'},
+  '生活':{zh:'我喜欢现在的生活。',py:'Wǒ xǐhuan xiànzài de shēnghuó.',vi:'Tôi thích cuộc sống hiện tại.'},
+  '一直':{zh:'我一直很想你。',py:'Wǒ yìzhí hěn xiǎng nǐ.',vi:'Tôi luôn nhớ bạn.'},
+  '不过':{zh:'我很累，不过很开心。',py:'Wǒ hěn lèi, búguò hěn kāixīn.',vi:'Tôi rất mệt, nhưng rất vui.'},
+  '公司':{zh:'我在一家公司工作。',py:'Wǒ zài yì jiā gōngsī gōngzuò.',vi:'Tôi làm việc ở một công ty.'},
+  '不要':{zh:'不要担心。',py:'Búyào dānxīn.',vi:'Đừng lo lắng.'},
+  '成':{zh:'这件事一定能成。',py:'Zhè jiàn shì yídìng néng chéng.',vi:'Việc này chắc chắn sẽ thành công.'},
+  '名':{zh:'他考了第一名。',py:'Tā kǎole dì-yī míng.',vi:'Anh ấy thi được hạng nhất.'},
+  '所有':{zh:'所有人都到了。',py:'Suǒyǒu rén dōu dào le.',vi:'Tất cả mọi người đều đã đến.'},
+  '而且':{zh:'这个菜好吃，而且便宜。',py:'Zhège cài hǎochī, érqiě piányi.',vi:'Món này ngon mà lại rẻ.'},
+  '必须':{zh:'你必须完成作业。',py:'Nǐ bìxū wánchéng zuòyè.',vi:'Bạn phải hoàn thành bài tập.'},
+  '长':{zh:'他长得很高。',py:'Tā zhǎng de hěn gāo.',vi:'Anh ấy cao lớn.'},
+  '成为':{zh:'她想成为医生。',py:'Tā xiǎng chéngwéi yīshēng.',vi:'Cô ấy muốn trở thành bác sĩ.'},
+  '其他':{zh:'还有其他问题吗？',py:'Hái yǒu qítā wèntí ma?',vi:'Còn câu hỏi nào khác không?'},
+  '事情':{zh:'这件事情很重要。',py:'Zhè jiàn shìqing hěn zhòngyào.',vi:'Việc này rất quan trọng.'},
+  '感觉':{zh:'我感觉很好。',py:'Wǒ gǎnjué hěn hǎo.',vi:'Tôi cảm thấy rất tốt.'},
+  '然后':{zh:'我先吃饭，然后学习。',py:'Wǒ xiān chīfàn, ránhòu xuéxí.',vi:'Tôi ăn cơm trước, sau đó học bài.'},
+  '条':{zh:'我买了一条鱼。',py:'Wǒ mǎile yì tiáo yú.',vi:'Tôi đã mua một con cá.'},
+  '场':{zh:'昨天有一场比赛。',py:'Zuótiān yǒu yì chǎng bǐsài.',vi:'Hôm qua có một trận thi đấu.'},
+  '件':{zh:'我买了一件衣服。',py:'Wǒ mǎile yí jiàn yīfu.',vi:'Tôi đã mua một chiếc áo.'},
+  '进行':{zh:'会议正在进行。',py:'Huìyì zhèngzài jìnxíng.',vi:'Cuộc họp đang diễn ra.'},
+  '为什么':{zh:'你为什么不高兴？',py:'Nǐ wèishénme bù gāoxìng?',vi:'Sao bạn không vui vậy?'},
+  '或':{zh:'你可以打电话或发短信。',py:'Nǐ kěyǐ dǎ diànhuà huò fā duǎnxìn.',vi:'Bạn có thể gọi điện hoặc nhắn tin.'},
+  '出现':{zh:'问题出现了。',py:'Wèntí chūxiàn le.',vi:'Vấn đề đã xuất hiện.'},
+  '头':{zh:'我头很疼。',py:'Wǒ tóu hěn téng.',vi:'Đầu tôi rất đau.'},
+  '见到':{zh:'很高兴见到你。',py:'Hěn gāoxìng jiàndào nǐ.',vi:'Rất vui được gặp bạn.'},
+  '通过':{zh:'他通过了考试。',py:'Tā tōngguòle kǎoshì.',vi:'Anh ấy đã đỗ kỳ thi.'},
+  '周':{zh:'这周我很忙。',py:'Zhè zhōu wǒ hěn máng.',vi:'Tuần này tôi rất bận.'},
+  '过去':{zh:'那是过去的事了。',py:'Nà shì guòqù de shì le.',vi:'Đó là chuyện quá khứ rồi.'},
+  '参加':{zh:'我要参加一个聚会。',py:'Wǒ yào cānjiā yí gè jùhuì.',vi:'Tôi phải tham gia một bữa tiệc.'},
+  '安全':{zh:'开车要注意安全。',py:'Kāichē yào zhùyì ānquán.',vi:'Lái xe phải chú ý an toàn.'},
+  '结果':{zh:'考试的结果怎么样？',py:'Kǎoshì de jiéguǒ zěnmeyàng?',vi:'Kết quả thi thế nào?'},
+  '或者':{zh:'我们喝茶或者咖啡吧。',py:'Wǒmen hē chá huòzhě kāfēi ba.',vi:'Chúng ta uống trà hoặc cà phê đi.'},
+  '不错':{zh:'这个主意不错。',py:'Zhège zhǔyi búcuò.',vi:'Ý này không tệ.'},
+  '机会':{zh:'这是一个好机会。',py:'Zhè shì yí gè hǎo jīhuì.',vi:'Đây là một cơ hội tốt.'},
+  '完全':{zh:'我完全明白了。',py:'Wǒ wánquán míngbai le.',vi:'Tôi hoàn toàn hiểu rồi.'},
+  '完':{zh:'我做完作业了。',py:'Wǒ zuòwán zuòyè le.',vi:'Tôi đã làm xong bài tập.'},
+  '发':{zh:'我给你发一个短信。',py:'Wǒ gěi nǐ fā yí gè duǎnxìn.',vi:'Tôi gửi cho bạn một tin nhắn.'},
+  '计划':{zh:'我们有一个新计划。',py:'Wǒmen yǒu yí gè xīn jìhuà.',vi:'Chúng tôi có một kế hoạch mới.'},
+  '可是':{zh:'我想去，可是天气不好。',py:'Wǒ xiǎng qù, kěshì tiānqì bù hǎo.',vi:'Tôi muốn đi, nhưng thời tiết không tốt.'},
+  '全':{zh:'全班都来了。',py:'Quán bān dōu lái le.',vi:'Cả lớp đều đến rồi.'},
+  '以后':{zh:'以后我们常联系吧。',py:'Yǐhòu wǒmen cháng liánxì ba.',vi:'Sau này chúng ta thường liên lạc nhé.'},
+  '要求':{zh:'老师要求我们认真学习。',py:'Lǎoshī yāoqiú wǒmen rènzhēn xuéxí.',vi:'Thầy giáo yêu cầu chúng tôi học hành nghiêm túc.'},
+  '信':{zh:'我给她写了一封信。',py:'Wǒ gěi tā xiěle yì fēng xìn.',vi:'Tôi đã viết cho cô ấy một lá thư.'},
+  '队':{zh:'我们队赢了。',py:'Wǒmen duì yíng le.',vi:'Đội chúng tôi đã thắng.'},
+  '接':{zh:'我去机场接你。',py:'Wǒ qù jīchǎng jiē nǐ.',vi:'Tôi đi sân bay đón bạn.'},
+  '相信':{zh:'我相信你能做到。',py:'Wǒ xiāngxìn nǐ néng zuòdào.',vi:'Tôi tin bạn có thể làm được.'},
+  '刚':{zh:'他刚走。',py:'Tā gāng zǒu.',vi:'Anh ấy vừa mới đi.'},
+  '虽然':{zh:'虽然很累，但是很开心。',py:'Suīrán hěn lèi, dànshì hěn kāixīn.',vi:'Tuy mệt nhưng rất vui.'},
+  '原因':{zh:'我不知道原因。',py:'Wǒ bù zhīdào yuányīn.',vi:'Tôi không biết nguyên nhân.'},
+  '只要':{zh:'只要你努力，就能成功。',py:'Zhǐyào nǐ nǔlì, jiù néng chénggōng.',vi:'Chỉ cần bạn cố gắng, sẽ thành công.'},
+  '不同':{zh:'我们的想法不同。',py:'Wǒmen de xiǎngfǎ bùtóng.',vi:'Suy nghĩ của chúng ta khác nhau.'},
+  '进入':{zh:'请进入教室。',py:'Qǐng jìnrù jiàoshì.',vi:'Xin vào lớp học.'},
+  '有人':{zh:'门外有人。',py:'Mén wài yǒu rén.',vi:'Có người ở ngoài cửa.'},
+  '分钟':{zh:'请等五分钟。',py:'Qǐng děng wǔ fēnzhōng.',vi:'Xin đợi năm phút.'},
+  '接受':{zh:'我接受你的建议。',py:'Wǒ jiēshòu nǐ de jiànyì.',vi:'Tôi chấp nhận đề nghị của bạn.'},
+  '其中':{zh:'我有三本书，其中一本是中文的。',py:'Wǒ yǒu sān běn shū, qízhōng yì běn shì Zhōngwén de.',vi:'Tôi có ba cuốn sách, trong đó một cuốn là tiếng Trung.'},
+  '人们':{zh:'人们都喜欢他。',py:'Rénmen dōu xǐhuan tā.',vi:'Mọi người đều thích anh ấy.'},
+  '道':{zh:'这是一条小道。',py:'Zhè shì yì tiáo xiǎo dào.',vi:'Đây là một con đường nhỏ.'},
+  '能够':{zh:'我能够帮你。',py:'Wǒ nénggòu bāng nǐ.',vi:'Tôi có thể giúp bạn.'},
+  '拉':{zh:'请拉开门。',py:'Qǐng lākāi mén.',vi:'Xin kéo cửa ra.'},
+  '完成':{zh:'我完成了工作。',py:'Wǒ wánchéngle gōngzuò.',vi:'Tôi đã hoàn thành công việc.'},
+  '求':{zh:'我求你帮帮我。',py:'Wǒ qiú nǐ bāngbang wǒ.',vi:'Tôi cầu xin bạn giúp tôi.'},
+  '帮助':{zh:'谢谢你的帮助。',py:'Xièxie nǐ de bāngzhù.',vi:'Cảm ơn sự giúp đỡ của bạn.'},
+  '变':{zh:'天气变冷了。',py:'Tiānqì biàn lěng le.',vi:'Thời tiết trở lạnh rồi.'},
+  '加':{zh:'请加一点儿糖。',py:'Qǐng jiā yìdiǎnr táng.',vi:'Xin thêm một chút đường.'},
+  '当时':{zh:'当时我还不认识他。',py:'Dāngshí wǒ hái bú rènshi tā.',vi:'Lúc đó tôi vẫn chưa quen anh ấy.'},
+  '努力':{zh:'他学习很努力。',py:'Tā xuéxí hěn nǔlì.',vi:'Anh ấy học rất chăm chỉ.'},
+  '部分':{zh:'一部分人不同意。',py:'Yí bùfen rén bù tóngyì.',vi:'Một phần người không đồng ý.'},
+  '以前':{zh:'我以前住在北京。',py:'Wǒ yǐqián zhù zài Běijīng.',vi:'Trước đây tôi sống ở Bắc Kinh.'},
+  '办法':{zh:'我有一个办法。',py:'Wǒ yǒu yí gè bànfǎ.',vi:'Tôi có một cách.'},
+  '特别':{zh:'今天特别热。',py:'Jīntiān tèbié rè.',vi:'Hôm nay đặc biệt nóng.'},
+  '真正':{zh:'这是真正的朋友。',py:'Zhè shì zhēnzhèng de péngyou.',vi:'Đây là người bạn thật sự.'},
+  '掉':{zh:'手机掉了。',py:'Shǒujī diào le.',vi:'Điện thoại rơi rồi.'},
+  '改变':{zh:'他改变了很多。',py:'Tā gǎibiànle hěn duō.',vi:'Anh ấy đã thay đổi rất nhiều.'},
+  '讲':{zh:'请你讲一个故事。',py:'Qǐng nǐ jiǎng yí gè gùshi.',vi:'Xin bạn kể một câu chuyện.'},
+  '离开':{zh:'他已经离开了。',py:'Tā yǐjīng líkāi le.',vi:'Anh ấy đã rời đi rồi.'},
+  '万':{zh:'这辆车十万块钱。',py:'Zhè liàng chē shí wàn kuài qián.',vi:'Chiếc xe này mười vạn tệ.'},
+  '生':{zh:'我在河内出生。',py:'Wǒ zài Hénèi chūshēng.',vi:'Tôi sinh ra ở Hà Nội.'},
+  '片':{zh:'请给我一片面包。',py:'Qǐng gěi wǒ yí piàn miànbāo.',vi:'Xin cho tôi một lát bánh mì.'},
+  '同时':{zh:'我们同时到了。',py:'Wǒmen tóngshí dào le.',vi:'Chúng tôi đến cùng lúc.'},
+  '以为':{zh:'我以为你不来了。',py:'Wǒ yǐwéi nǐ bù lái le.',vi:'Tôi tưởng bạn không đến nữa.'},
+  '越':{zh:'天越来越冷。',py:'Tiān yuè lái yuè lěng.',vi:'Trời càng ngày càng lạnh.'},
+  '方法':{zh:'这个方法很好。',py:'Zhège fāngfǎ hěn hǎo.',vi:'Phương pháp này rất tốt.'},
+  '组':{zh:'我们分成三组。',py:'Wǒmen fēnchéng sān zǔ.',vi:'Chúng ta chia thành ba nhóm.'},
+  '直接':{zh:'你可以直接问他。',py:'Nǐ kěyǐ zhíjiē wèn tā.',vi:'Bạn có thể hỏi trực tiếp anh ấy.'},
+  '卖':{zh:'这里卖水果。',py:'Zhèlǐ mài shuǐguǒ.',vi:'Ở đây bán hoa quả.'},
+  '选':{zh:'请选一个。',py:'Qǐng xuǎn yí gè.',vi:'Xin chọn một cái.'},
+  '句':{zh:'请再说一句。',py:'Qǐng zài shuō yí jù.',vi:'Xin nói thêm một câu nữa.'},
+  '影响':{zh:'天气影响了我们的计划。',py:'Tiānqì yǐngxiǎngle wǒmen de jìhuà.',vi:'Thời tiết đã ảnh hưởng đến kế hoạch của chúng tôi.'},
+  '永远':{zh:'我永远记得这一天。',py:'Wǒ yǒngyuǎn jìde zhè yì tiān.',vi:'Tôi sẽ nhớ mãi ngày này.'},
+  '方面':{zh:'他在很多方面都很棒。',py:'Tā zài hěn duō fāngmiàn dōu hěn bàng.',vi:'Anh ấy giỏi ở rất nhiều mặt.'},
+  '也许':{zh:'他也许还不知道。',py:'Tā yěxǔ hái bù zhīdào.',vi:'Có lẽ anh ấy vẫn chưa biết.'},
+  '面':{zh:'这件事有好的一面。',py:'Zhè jiàn shì yǒu hǎo de yí miàn.',vi:'Việc này có mặt tốt của nó.'},
+  '活动':{zh:'学校有很多活动。',py:'Xuéxiào yǒu hěn duō huódòng.',vi:'Trường có rất nhiều hoạt động.'},
+  '份':{zh:'我要一份报纸。',py:'Wǒ yào yí fèn bàozhǐ.',vi:'Tôi muốn một tờ báo.'},
+  '信息':{zh:'请告诉我更多信息。',py:'Qǐng gàosu wǒ gèng duō xìnxī.',vi:'Xin cho tôi biết thêm thông tin.'},
+  '最近':{zh:'你最近怎么样？',py:'Nǐ zuìjìn zěnmeyàng?',vi:'Dạo này bạn thế nào?'},
+  '换':{zh:'我想换一件衣服。',py:'Wǒ xiǎng huàn yí jiàn yīfu.',vi:'Tôi muốn thay một bộ quần áo khác.'},
+  '狗':{zh:'我家有一只狗。',py:'Wǒ jiā yǒu yì zhī gǒu.',vi:'Nhà tôi có một con chó.'},
+  '靠':{zh:'他靠在墙上休息。',py:'Tā kào zài qiáng shang xiūxi.',vi:'Anh ấy dựa vào tường nghỉ ngơi.'},
+  '脸':{zh:'她的脸很红。',py:'Tā de liǎn hěn hóng.',vi:'Mặt cô ấy rất đỏ.'},
+  '快乐':{zh:'生日快乐！',py:'Shēngrì kuàilè!',vi:'Chúc mừng sinh nhật!'},
+  '使用':{zh:'请正确使用这个工具。',py:'Qǐng zhèngquè shǐyòng zhège gōngjù.',vi:'Xin sử dụng đúng cách công cụ này.'},
+  '来自':{zh:'他来自中国。',py:'Tā láizì Zhōngguó.',vi:'Anh ấy đến từ Trung Quốc.'},
+  '段':{zh:'请读这一段。',py:'Qǐng dú zhè yí duàn.',vi:'Xin đọc đoạn này.'},
+  '检查':{zh:'医生给我检查了身体。',py:'Yīshēng gěi wǒ jiǎnchále shēntǐ.',vi:'Bác sĩ đã khám sức khoẻ cho tôi.'},
+  '中心':{zh:'学校在城市中心。',py:'Xuéxiào zài chéngshì zhōngxīn.',vi:'Trường học ở trung tâm thành phố.'},
+  '米':{zh:'这个房间十平方米。',py:'Zhège fángjiān shí píngfāng mǐ.',vi:'Căn phòng này mười mét vuông.'},
+  '行动':{zh:'我们应该马上行动。',py:'Wǒmen yīnggāi mǎshàng xíngdòng.',vi:'Chúng ta nên hành động ngay.'},
+  '开心':{zh:'今天我很开心。',py:'Jīntiān wǒ hěn kāixīn.',vi:'Hôm nay tôi rất vui.'},
+  '懂':{zh:'你懂我的意思吗？',py:'Nǐ dǒng wǒ de yìsi ma?',vi:'Bạn hiểu ý tôi không?'},
+  '卡':{zh:'我的信用卡丢了。',py:'Wǒ de xìnyòngkǎ diū le.',vi:'Thẻ tín dụng của tôi bị mất rồi.'},
+  '带来':{zh:'请把书带来。',py:'Qǐng bǎ shū dàilái.',vi:'Xin mang sách đến.'},
+  '办':{zh:'这件事我来办。',py:'Zhè jiàn shì wǒ lái bàn.',vi:'Việc này để tôi lo.'},
+  '过来':{zh:'请你过来一下。',py:'Qǐng nǐ guòlái yíxià.',vi:'Xin bạn qua đây một chút.'},
+  '算':{zh:'这个不算贵。',py:'Zhège bú suàn guì.',vi:'Cái này không tính là đắt.'},
+  '辆':{zh:'街上有很多辆车。',py:'Jiē shang yǒu hěn duō liàng chē.',vi:'Trên phố có rất nhiều xe.'},
+  '药':{zh:'你要按时吃药。',py:'Nǐ yào ànshí chī yào.',vi:'Bạn phải uống thuốc đúng giờ.'},
+  '留':{zh:'他给我留了一张纸条。',py:'Tā gěi wǒ liúle yì zhāng zhǐtiáo.',vi:'Anh ấy để lại cho tôi một mẩu giấy.'},
+  '家庭':{zh:'他有一个幸福的家庭。',py:'Tā yǒu yí gè xìngfú de jiātíng.',vi:'Anh ấy có một gia đình hạnh phúc.'},
+  '交':{zh:'请把作业交给老师。',py:'Qǐng bǎ zuòyè jiāo gěi lǎoshī.',vi:'Xin nộp bài tập cho thầy giáo.'},
+  '套':{zh:'我买了一套新衣服。',py:'Wǒ mǎile yí tào xīn yīfu.',vi:'Tôi đã mua một bộ quần áo mới.'},
+  '全部':{zh:'全部东西都在这里。',py:'Quánbù dōngxi dōu zài zhèlǐ.',vi:'Tất cả đồ đạc đều ở đây.'},
+  '刚刚':{zh:'他刚刚离开。',py:'Tā gānggang líkāi.',vi:'Anh ấy vừa mới rời đi.'},
+  '正常':{zh:'这是很正常的事。',py:'Zhè shì hěn zhèngcháng de shì.',vi:'Đây là chuyện rất bình thường.'},
+  '黑':{zh:'他穿着黑色的衣服。',py:'Tā chuānzhe hēisè de yīfu.',vi:'Anh ấy mặc quần áo màu đen.'},
+  '店':{zh:'这家店的东西很便宜。',py:'Zhè jiā diàn de dōngxi hěn piányi.',vi:'Đồ ở cửa hàng này rất rẻ.'},
+  '服务':{zh:'这里的服务很好。',py:'Zhèlǐ de fúwù hěn hǎo.',vi:'Dịch vụ ở đây rất tốt.'},
+  '想到':{zh:'我没想到你会来。',py:'Wǒ méi xiǎngdào nǐ huì lái.',vi:'Tôi không nghĩ là bạn sẽ đến.'},
+  '行为':{zh:'他的行为很奇怪。',py:'Tā de xíngwéi hěn qíguài.',vi:'Hành vi của anh ấy rất kỳ lạ.'},
+  '挺':{zh:'这个菜挺好吃的。',py:'Zhège cài tǐng hǎochī de.',vi:'Món này khá ngon đấy.'},
+  '好像':{zh:'他好像不高兴。',py:'Tā hǎoxiàng bù gāoxìng.',vi:'Anh ấy có vẻ không vui.'},
+  '克':{zh:'这个苹果三百克。',py:'Zhège píngguǒ sānbǎi kè.',vi:'Quả táo này ba trăm gram.'},
+  '愿意':{zh:'我愿意帮助你。',py:'Wǒ yuànyì bāngzhù nǐ.',vi:'Tôi sẵn lòng giúp bạn.'},
+  '装':{zh:'他在装睡。',py:'Tā zài zhuāng shuì.',vi:'Anh ấy đang giả vờ ngủ.'},
+  '音乐':{zh:'我喜欢听音乐。',py:'Wǒ xǐhuan tīng yīnyuè.',vi:'Tôi thích nghe nhạc.'},
+  '感谢':{zh:'非常感谢你的帮助。',py:'Fēicháng gǎnxiè nǐ de bāngzhù.',vi:'Rất cảm ơn sự giúp đỡ của bạn.'},
+  '座':{zh:'这座城市很美。',py:'Zhè zuò chéngshì hěn měi.',vi:'Thành phố này rất đẹp.'},
+  '那样':{zh:'别那样做。',py:'Bié nàyàng zuò.',vi:'Đừng làm như thế.'},
+  '往':{zh:'一直往前走。',py:'Yìzhí wǎng qián zǒu.',vi:'Cứ đi thẳng về phía trước.'},
+  '眼':{zh:'他看了我一眼。',py:'Tā kànle wǒ yì yǎn.',vi:'Anh ấy liếc nhìn tôi một cái.'},
+  '感到':{zh:'我感到很高兴。',py:'Wǒ gǎndào hěn gāoxìng.',vi:'Tôi cảm thấy rất vui.'},
+  '清楚':{zh:'请说清楚一点儿。',py:'Qǐng shuō qīngchu yìdiǎnr.',vi:'Xin nói rõ hơn một chút.'},
+  '照片':{zh:'这是我们的照片。',py:'Zhè shì wǒmen de zhàopiàn.',vi:'Đây là ảnh của chúng tôi.'},
+  '停':{zh:'车停在门口。',py:'Chē tíng zài ménkǒu.',vi:'Xe đỗ ở trước cửa.'},
+  '银行':{zh:'银行几点开门？',py:'Yínháng jǐ diǎn kāimén?',vi:'Ngân hàng mấy giờ mở cửa?'},
+  '故事':{zh:'妈妈给我讲了一个故事。',py:'Māma gěi wǒ jiǎngle yí gè gùshi.',vi:'Mẹ đã kể cho tôi một câu chuyện.'},
+  '气':{zh:'别生气了。',py:'Bié shēngqì le.',vi:'Đừng giận nữa.'},
+  '倒':{zh:'树被风吹倒了。',py:'Shù bèi fēng chuīdǎo le.',vi:'Cây bị gió thổi đổ.'},
+  '酒':{zh:'他不喝酒。',py:'Tā bù hē jiǔ.',vi:'Anh ấy không uống rượu.'},
+  '原来':{zh:'原来是你啊！',py:'Yuánlái shì nǐ a!',vi:'Hoá ra là bạn à!'},
+  '它们':{zh:'这些书，它们都是我的。',py:'Zhèxiē shū, tāmen dōu shì wǒ de.',vi:'Những cuốn sách này, chúng đều là của tôi.'},
+  '红':{zh:'她喜欢红色。',py:'Tā xǐhuan hóngsè.',vi:'Cô ấy thích màu đỏ.'},
+  '欢迎':{zh:'欢迎来我家。',py:'Huānyíng lái wǒ jiā.',vi:'Hoan nghênh đến nhà tôi.'},
+  '一般':{zh:'我一般七点起床。',py:'Wǒ yìbān qī diǎn qǐchuáng.',vi:'Tôi thường dậy lúc bảy giờ.'},
+  '可爱':{zh:'这只小狗很可爱。',py:'Zhè zhī xiǎogǒu hěn kě\u2019ài.',vi:'Chú chó nhỏ này rất đáng yêu.'},
+  '边':{zh:'他坐在我边上。',py:'Tā zuò zài wǒ biān shang.',vi:'Anh ấy ngồi cạnh tôi.'},
+  '新闻':{zh:'我每天看新闻。',py:'Wǒ měitiān kàn xīnwén.',vi:'Tôi xem tin tức mỗi ngày.'},
+  '眼睛':{zh:'她的眼睛很漂亮。',py:'Tā de yǎnjing hěn piàoliang.',vi:'Đôi mắt cô ấy rất đẹp.'},
+  '做到':{zh:'我一定能做到。',py:'Wǒ yídìng néng zuòdào.',vi:'Tôi chắc chắn sẽ làm được.'},
+  '近':{zh:'学校离我家很近。',py:'Xuéxiào lí wǒ jiā hěn jìn.',vi:'Trường học cách nhà tôi rất gần.'},
+  '怎样':{zh:'这个字怎样写？',py:'Zhège zì zěnyàng xiě?',vi:'Chữ này viết như thế nào?'},
+  '收':{zh:'你收到我的信了吗？',py:'Nǐ shōudào wǒ de xìn le ma?',vi:'Bạn nhận được thư của tôi chưa?'},
+  '声音':{zh:'我喜欢她的声音。',py:'Wǒ xǐhuan tā de shēngyīn.',vi:'Tôi thích giọng nói của cô ấy.'},
+  '数':{zh:'请你数一数。',py:'Qǐng nǐ shǔ yi shǔ.',vi:'Xin bạn đếm thử xem.'},
+  '变成':{zh:'水变成了冰。',py:'Shuǐ biànchéngle bīng.',vi:'Nước đã biến thành băng.'},
+  '受到':{zh:'他受到了大家的欢迎。',py:'Tā shòudàole dàjiā de huānyíng.',vi:'Anh ấy được mọi người chào đón.'},
+  '经过':{zh:'我每天经过这个公园。',py:'Wǒ měitiān jīngguò zhège gōngyuán.',vi:'Tôi đi qua công viên này mỗi ngày.'},
+  '只能':{zh:'我今天只能待一个小时。',py:'Wǒ jīntiān zhǐnéng dāi yí gè xiǎoshí.',vi:'Hôm nay tôi chỉ có thể ở lại một tiếng.'},
+  '哭':{zh:'孩子在哭。',py:'Háizi zài kū.',vi:'Đứa trẻ đang khóc.'},
+  '怕':{zh:'我怕黑。',py:'Wǒ pà hēi.',vi:'Tôi sợ bóng tối.'},
+  '离':{zh:'我家离学校不远。',py:'Wǒ jiā lí xuéxiào bù yuǎn.',vi:'Nhà tôi cách trường không xa.'},
+  '漂亮':{zh:'这条裙子很漂亮。',py:'Zhè tiáo qúnzi hěn piàoliang.',vi:'Chiếc váy này rất đẹp.'},
+  '重新':{zh:'我们重新开始吧。',py:'Wǒmen chóngxīn kāishǐ ba.',vi:'Chúng ta bắt đầu lại nhé.'},
+  '提':{zh:'他提了一个问题。',py:'Tā tíle yí gè wèntí.',vi:'Anh ấy đã nêu ra một câu hỏi.'},
+  '度':{zh:'今天二十五度。',py:'Jīntiān èrshíwǔ dù.',vi:'Hôm nay hai mươi lăm độ.'},
+  '经常':{zh:'他经常来图书馆。',py:'Tā jīngcháng lái túshūguǎn.',vi:'Anh ấy thường xuyên đến thư viện.'},
+  '面前':{zh:'老师站在我们面前。',py:'Lǎoshī zhàn zài wǒmen miànqián.',vi:'Thầy giáo đứng trước mặt chúng tôi.'},
+  '低':{zh:'这个价格很低。',py:'Zhège jiàgé hěn dī.',vi:'Giá này rất thấp.'},
+  '节目':{zh:'这个电视节目很有意思。',py:'Zhège diànshì jiémù hěn yǒuyìsi.',vi:'Chương trình ti vi này rất thú vị.'},
+  '健康':{zh:'身体健康最重要。',py:'Shēntǐ jiànkāng zuì zhòngyào.',vi:'Sức khoẻ cơ thể là quan trọng nhất.'},
+  '弄':{zh:'别把衣服弄脏了。',py:'Bié bǎ yīfu nòngzāng le.',vi:'Đừng làm bẩn quần áo.'},
+  '作用':{zh:'这个药有很好的作用。',py:'Zhège yào yǒu hěn hǎo de zuòyòng.',vi:'Thuốc này có tác dụng rất tốt.'},
+  '满':{zh:'杯子里的水满了。',py:'Bēizi lǐ de shuǐ mǎn le.',vi:'Nước trong cốc đầy rồi.'},
+  '说明':{zh:'请你说明一下情况。',py:'Qǐng nǐ shuōmíng yíxià qíngkuàng.',vi:'Xin bạn giải thích tình hình.'},
+  '许多':{zh:'公园里有许多花。',py:'Gōngyuán lǐ yǒu xǔduō huā.',vi:'Trong công viên có nhiều hoa.'},
+  '同样':{zh:'我们有同样的想法。',py:'Wǒmen yǒu tóngyàng de xiǎngfǎ.',vi:'Chúng ta có suy nghĩ giống nhau.'},
+  '身边':{zh:'他一直在我身边。',py:'Tā yìzhí zài wǒ shēnbiān.',vi:'Anh ấy luôn ở bên tôi.'},
+  '越来越':{zh:'天越来越冷了。',py:'Tiān yuè lái yuè lěng le.',vi:'Trời càng ngày càng lạnh.'},
+  '短':{zh:'这条路很短。',py:'Zhè tiáo lù hěn duǎn.',vi:'Con đường này rất ngắn.'},
+  '意思':{zh:'这个词是什么意思？',py:'Zhège cí shì shénme yìsi?',vi:'Từ này nghĩa là gì?'},
+  '意见':{zh:'你有什么意见？',py:'Nǐ yǒu shénme yìjiàn?',vi:'Bạn có ý kiến gì không?'},
+  '查':{zh:'我去查一下资料。',py:'Wǒ qù chá yíxià zīliào.',vi:'Tôi đi tra cứu tài liệu một chút.'},
+  '脚':{zh:'我的脚很疼。',py:'Wǒ de jiǎo hěn téng.',vi:'Chân tôi rất đau.'},
+  '主要':{zh:'主要问题是钱不够。',py:'Zhǔyào wèntí shì qián bú gòu.',vi:'Vấn đề chính là không đủ tiền.'},
+  '市':{zh:'他住在河内市。',py:'Tā zhù zài Hénèi shì.',vi:'Anh ấy sống ở thành phố Hà Nội.'},
+  '不少':{zh:'这里有不少人。',py:'Zhèlǐ yǒu bùshǎo rén.',vi:'Ở đây có khá nhiều người.'},
+  '讨论':{zh:'我们讨论一下这个问题吧。',py:'Wǒmen tǎolùn yíxià zhège wèntí ba.',vi:'Chúng ta thảo luận vấn đề này nhé.'},
+  '超过':{zh:'他的成绩超过了我。',py:'Tā de chéngjì chāoguòle wǒ.',vi:'Thành tích của anh ấy vượt qua tôi.'},
+  '比如':{zh:'我喜欢很多水果，比如苹果、香蕉。',py:'Wǒ xǐhuan hěn duō shuǐguǒ, bǐrú píngguǒ, xiāngjiāo.',vi:'Tôi thích nhiều loại hoa quả, ví dụ như táo, chuối.'},
+  '假':{zh:'这是假的。',py:'Zhè shì jiǎ de.',vi:'Cái này là giả.'},
+  '后来':{zh:'后来他去了美国。',py:'Hòulái tā qùle Měiguó.',vi:'Sau đó anh ấy đã đến Mỹ.'},
+  '嘴':{zh:'请闭上嘴。',py:'Qǐng bìshàng zuǐ.',vi:'Xin hãy khép miệng lại.'},
+  '自由':{zh:'我喜欢自由。',py:'Wǒ xǐhuan zìyóu.',vi:'Tôi thích sự tự do.'},
+  '改':{zh:'请帮我改一下这句话。',py:'Qǐng bāng wǒ gǎi yíxià zhè jù huà.',vi:'Xin giúp tôi sửa câu này.'},
+  '就要':{zh:'我们就要到了。',py:'Wǒmen jiùyào dào le.',vi:'Chúng ta sắp đến rồi.'},
+  '加油':{zh:'加油！你能做到！',py:'Jiāyóu! Nǐ néng zuòdào!',vi:'Cố lên! Bạn làm được mà!'},
+  '省':{zh:'我们要省钱。',py:'Wǒmen yào shěng qián.',vi:'Chúng ta phải tiết kiệm tiền.'},
+  '海':{zh:'我喜欢看海。',py:'Wǒ xǐhuan kàn hǎi.',vi:'Tôi thích ngắm biển.'},
+  '夜':{zh:'昨天夜里下雨了。',py:'Zuótiān yèli xiàyǔ le.',vi:'Đêm qua trời đã mưa.'},
+  '十分':{zh:'我十分高兴。',py:'Wǒ shífēn gāoxìng.',vi:'Tôi vô cùng vui mừng.'},
+  '称':{zh:'大家称他为老师。',py:'Dàjiā chēng tā wéi lǎoshī.',vi:'Mọi người gọi anh ấy là thầy.'},
+  '年轻':{zh:'他看起来很年轻。',py:'Tā kàn qǐlái hěn niánqīng.',vi:'Trông anh ấy rất trẻ.'},
+  '条件':{zh:'这里的条件很好。',py:'Zhèlǐ de tiáojiàn hěn hǎo.',vi:'Điều kiện ở đây rất tốt.'},
+  '晚安':{zh:'晚安，做个好梦。',py:'Wǎn\u2019ān, zuò gè hǎo mèng.',vi:'Chúc ngủ ngon, mơ giấc mơ đẹp.'},
+  '画':{zh:'她喜欢画画儿。',py:'Tā xǐhuan huà huàr.',vi:'Cô ấy thích vẽ tranh.'},
+  '广告':{zh:'电视上有很多广告。',py:'Diànshì shang yǒu hěn duō guǎnggào.',vi:'Trên ti vi có rất nhiều quảng cáo.'},
+  '提出':{zh:'他提出了一个好办法。',py:'Tā tíchūle yí gè hǎo bànfǎ.',vi:'Anh ấy đã đề xuất một cách hay.'},
+  '运动':{zh:'我每天运动半个小时。',py:'Wǒ měitiān yùndòng bàn gè xiǎoshí.',vi:'Tôi tập thể dục nửa tiếng mỗi ngày.'},
+  '样子':{zh:'这件衣服的样子很好看。',py:'Zhè jiàn yīfu de yàngzi hěn hǎokàn.',vi:'Kiểu dáng của bộ quần áo này rất đẹp.'},
+  '实现':{zh:'我要实现我的梦想。',py:'Wǒ yào shíxiàn wǒ de mèngxiǎng.',vi:'Tôi muốn thực hiện ước mơ của mình.'},
+  '刚才':{zh:'刚才是谁给我打电话？',py:'Gāngcái shì shéi gěi wǒ dǎ diànhuà?',vi:'Vừa nãy ai gọi điện cho tôi vậy?'},
+  '猫':{zh:'我家有一只猫。',py:'Wǒ jiā yǒu yì zhī māo.',vi:'Nhà tôi có một con mèo.'},
+  '通':{zh:'这条路不通。',py:'Zhè tiáo lù bù tōng.',vi:'Con đường này không thông.'},
+  '办公室':{zh:'老师在办公室。',py:'Lǎoshī zài bàngōngshì.',vi:'Thầy giáo đang ở văn phòng.'},
+  '正确':{zh:'你的答案很正确。',py:'Nǐ de dá\u2019àn hěn zhèngquè.',vi:'Đáp án của bạn rất đúng.'},
+  '爱情':{zh:'这是一个爱情故事。',py:'Zhè shì yí gè àiqíng gùshi.',vi:'Đây là một câu chuyện tình yêu.'},
+  '收到':{zh:'我收到了你的礼物。',py:'Wǒ shōudàole nǐ de lǐwù.',vi:'Tôi đã nhận được món quà của bạn.'},
+  '够':{zh:'钱不够了。',py:'Qián bú gòu le.',vi:'Tiền không đủ rồi.'},
+  '正是':{zh:'这正是我想要的。',py:'Zhè zhèngshì wǒ xiǎng yào de.',vi:'Đây chính xác là thứ tôi muốn.'},
+  '方向':{zh:'我们走错方向了。',py:'Wǒmen zǒucuò fāngxiàng le.',vi:'Chúng ta đi sai hướng rồi.'},
+  '排':{zh:'请排好队。',py:'Qǐng páihǎo duì.',vi:'Xin xếp hàng ngay ngắn.'},
+  '鱼':{zh:'我喜欢吃鱼。',py:'Wǒ xǐhuan chī yú.',vi:'Tôi thích ăn cá.'},
+  '关心':{zh:'谢谢你关心我。',py:'Xièxie nǐ guānxīn wǒ.',vi:'Cảm ơn bạn đã quan tâm đến tôi.'},
+  '节':{zh:'中秋节快到了。',py:'Zhōngqiūjié kuài dào le.',vi:'Tết Trung thu sắp đến rồi.'},
+  '留下':{zh:'他留下了一张纸条。',py:'Tā liúxiàle yì zhāng zhǐtiáo.',vi:'Anh ấy để lại một mẩu giấy.'},
+  '教育':{zh:'教育很重要。',py:'Jiàoyù hěn zhòngyào.',vi:'Giáo dục rất quan trọng.'},
+  '日子':{zh:'我们的日子越来越好。',py:'Wǒmen de rìzi yuè lái yuè hǎo.',vi:'Cuộc sống của chúng tôi ngày càng tốt hơn.'},
+  '取':{zh:'我去银行取钱。',py:'Wǒ qù yínháng qǔ qián.',vi:'Tôi đi ngân hàng rút tiền.'},
+  '层':{zh:'我住在五层。',py:'Wǒ zhù zài wǔ céng.',vi:'Tôi sống ở tầng năm.'},
+  '心里':{zh:'我心里很难过。',py:'Wǒ xīnli hěn nánguò.',vi:'Trong lòng tôi rất buồn.'},
+  '腿':{zh:'我的腿很疼。',py:'Wǒ de tuǐ hěn téng.',vi:'Chân tôi rất đau.'},
+  '全国':{zh:'全国人民都很高兴。',py:'Quánguó rénmín dōu hěn gāoxìng.',vi:'Nhân dân cả nước đều rất vui mừng.'},
+  '街':{zh:'我们去逛街吧。',py:'Wǒmen qù guàngjiē ba.',vi:'Chúng ta đi dạo phố đi.'},
+  '笔':{zh:'请借我一支笔。',py:'Qǐng jiè wǒ yì zhī bǐ.',vi:'Xin cho tôi mượn một cây bút.'},
+  '通知':{zh:'请通知大家开会。',py:'Qǐng tōngzhī dàjiā kāihuì.',vi:'Xin thông báo mọi người họp.'},
+  '鞋':{zh:'这双鞋很舒服。',py:'Zhè shuāng xié hěn shūfu.',vi:'Đôi giày này rất thoải mái.'},
+  '习惯':{zh:'我习惯早起。',py:'Wǒ xíguàn zǎo qǐ.',vi:'Tôi có thói quen dậy sớm.'},
+  '目的':{zh:'你的目的是什么？',py:'Nǐ de mùdì shì shénme?',vi:'Mục đích của bạn là gì?'},
+  '国际':{zh:'这是一个国际会议。',py:'Zhè shì yí gè guójì huìyì.',vi:'Đây là một hội nghị quốc tế.'},
+  '周末':{zh:'周末你有空吗？',py:'Zhōumò nǐ yǒu kòng ma?',vi:'Cuối tuần bạn có rảnh không?'},
+  '推':{zh:'请推开这扇门。',py:'Qǐng tuīkāi zhè shàn mén.',vi:'Xin đẩy cánh cửa này ra.'},
+  '听说':{zh:'我听说他要结婚了。',py:'Wǒ tīngshuō tā yào jiéhūn le.',vi:'Tôi nghe nói anh ấy sắp kết hôn.'},
+  '油':{zh:'做菜要放油。',py:'Zuò cài yào fàng yóu.',vi:'Nấu ăn phải cho dầu.'},
+  '科学':{zh:'他对科学很感兴趣。',py:'Tā duì kēxué hěn gǎn xìngqù.',vi:'Anh ấy rất hứng thú với khoa học.'},
+  '喂':{zh:'喂，是我。',py:'Wèi, shì wǒ.',vi:'Alô, là tôi đây.'},
+  '心情':{zh:'我今天心情不好。',py:'Wǒ jīntiān xīnqíng bù hǎo.',vi:'Hôm nay tâm trạng tôi không tốt.'},
+  '接着':{zh:'先洗手，接着吃饭。',py:'Xiān xǐshǒu, jiēzhe chīfàn.',vi:'Rửa tay trước, rồi ăn cơm.'},
+  '流':{zh:'河水在流。',py:'Héshuǐ zài liú.',vi:'Nước sông đang chảy.'},
+  '实在':{zh:'这个问题实在太难了。',py:'Zhège wèntí shízài tài nán le.',vi:'Câu hỏi này thực sự quá khó.'},
+  '表':{zh:'我的表停了。',py:'Wǒ de biǎo tíng le.',vi:'Đồng hồ của tôi ngừng chạy rồi.'},
+  '船':{zh:'我们坐船去吧。',py:'Wǒmen zuò chuán qù ba.',vi:'Chúng ta đi thuyền đi.'},
+  '养':{zh:'他家养了一只狗。',py:'Tā jiā yǎngle yì zhī gǒu.',vi:'Nhà anh ấy nuôi một con chó.'},
+  '鸡':{zh:'我们晚上吃鸡吧。',py:'Wǒmen wǎnshang chī jī ba.',vi:'Tối nay chúng ta ăn gà nhé.'},
+  '遍':{zh:'请再说一遍。',py:'Qǐng zài shuō yí biàn.',vi:'Xin nói lại một lần nữa.'},
+  '怎么样':{zh:'我们明天去，怎么样？',py:'Wǒmen míngtiān qù, zěnmeyàng?',vi:'Ngày mai chúng ta đi, thế nào?'},
+  '瓶':{zh:'我买了一瓶水。',py:'Wǒ mǎile yì píng shuǐ.',vi:'Tôi đã mua một chai nước.'},
+  '普通':{zh:'我是一个普通人。',py:'Wǒ shì yí gè pǔtōng rén.',vi:'Tôi là một người bình thường.'},
+  '打算':{zh:'你打算什么时候去？',py:'Nǐ dǎsuàn shénme shíhou qù?',vi:'Bạn định khi nào đi?'},
+  '重点':{zh:'这是这节课的重点。',py:'Zhè shì zhè jié kè de zhòngdiǎn.',vi:'Đây là trọng điểm của tiết học này.'},
+  '咱们':{zh:'咱们一起走吧。',py:'Zánmen yìqǐ zǒu ba.',vi:'Chúng ta cùng đi thôi.'},
+  '小心':{zh:'小心，别摔倒。',py:'Xiǎoxīn, bié shuāidǎo.',vi:'Cẩn thận, đừng ngã.'},
+  '不够':{zh:'时间不够了。',py:'Shíjiān bú gòu le.',vi:'Thời gian không đủ rồi.'},
+  '怎么办':{zh:'我忘带钥匙了，怎么办？',py:'Wǒ wàng dài yàoshi le, zěnme bàn?',vi:'Tôi quên mang chìa khoá rồi, làm sao đây?'},
+  '举行':{zh:'学校举行了一个活动。',py:'Xuéxiào jǔxíngle yí gè huódòng.',vi:'Trường đã tổ chức một hoạt động.'},
+  '想法':{zh:'你的想法很好。',py:'Nǐ de xiǎngfǎ hěn hǎo.',vi:'Ý tưởng của bạn rất hay.'},
+  '动物':{zh:'我喜欢小动物。',py:'Wǒ xǐhuan xiǎo dòngwù.',vi:'Tôi thích các loài động vật nhỏ.'},
+  '不行':{zh:'这样不行。',py:'Zhèyàng bùxíng.',vi:'Như vậy không được.'},
+  '明星':{zh:'她是有名的明星。',py:'Tā shì yǒumíng de míngxīng.',vi:'Cô ấy là ngôi sao nổi tiếng.'},
+  '级':{zh:'我在三年级。',py:'Wǒ zài sān niánjí.',vi:'Tôi học lớp ba.'},
+  '顺利':{zh:'祝你一切顺利！',py:'Zhù nǐ yíqiè shùnlì!',vi:'Chúc bạn mọi việc thuận lợi!'},
+  '水平':{zh:'他的中文水平很高。',py:'Tā de Zhōngwén shuǐpíng hěn gāo.',vi:'Trình độ tiếng Trung của anh ấy rất cao.'},
+  '网':{zh:'家里的网坏了。',py:'Jiā lǐ de wǎng huài le.',vi:'Mạng ở nhà bị hỏng rồi.'},
+  '借':{zh:'可以借我一本书吗？',py:'Kěyǐ jiè wǒ yì běn shū ma?',vi:'Có thể cho tôi mượn một cuốn sách không?'},
+  '长大':{zh:'孩子长大了。',py:'Háizi zhǎngdà le.',vi:'Đứa trẻ đã lớn rồi.'},
+  '交给':{zh:'请把这个交给他。',py:'Qǐng bǎ zhège jiāogěi tā.',vi:'Xin đưa cái này cho anh ấy.'},
+  '头发':{zh:'她的头发很长。',py:'Tā de tóufa hěn cháng.',vi:'Tóc của cô ấy rất dài.'},
+  '封':{zh:'我收到一封信。',py:'Wǒ shōudào yì fēng xìn.',vi:'Tôi nhận được một lá thư.'},
+  '蛋':{zh:'早上吃个蛋吧。',py:'Zǎoshang chī gè dàn ba.',vi:'Sáng ăn một quả trứng đi.'},
+  '科':{zh:'他在儿科工作。',py:'Tā zài érkē gōngzuò.',vi:'Anh ấy làm việc ở khoa nhi.'},
+  '占':{zh:'别占着位子。',py:'Bié zhànzhe wèizi.',vi:'Đừng chiếm chỗ.'},
+  '词':{zh:'这个词我不认识。',py:'Zhège cí wǒ bú rènshi.',vi:'Từ này tôi không biết.'},
+  '鸟':{zh:'树上有一只鸟。',py:'Shù shang yǒu yì zhī niǎo.',vi:'Trên cây có một con chim.'},
+  '取得':{zh:'他取得了好成绩。',py:'Tā qǔdéle hǎo chéngjì.',vi:'Anh ấy đã đạt được thành tích tốt.'},
+  '想起':{zh:'我想起来了。',py:'Wǒ xiǎng qǐlái le.',vi:'Tôi nhớ ra rồi.'},
+  '蓝':{zh:'天空是蓝色的。',py:'Tiānkōng shì lánsè de.',vi:'Bầu trời màu xanh lam.'},
+  '纸':{zh:'请给我一张纸。',py:'Qǐng gěi wǒ yì zhāng zhǐ.',vi:'Xin cho tôi một tờ giấy.'},
+  '背':{zh:'我在背课文。',py:'Wǒ zài bèi kèwén.',vi:'Tôi đang học thuộc bài khoá.'},
+  '一生':{zh:'这是我一生难忘的事。',py:'Zhè shì wǒ yìshēng nánwàng de shì.',vi:'Đây là chuyện tôi không thể quên trong đời.'},
+  '照顾':{zh:'谢谢你照顾我。',py:'Xièxie nǐ zhàogu wǒ.',vi:'Cảm ơn bạn đã chăm sóc tôi.'},
+  '急':{zh:'别急，慢慢来。',py:'Bié jí, mànmàn lái.',vi:'Đừng vội, từ từ thôi.'},
+  '疼':{zh:'我的头很疼。',py:'Wǒ de tóu hěn téng.',vi:'Đầu tôi rất đau.'},
+  '态度':{zh:'他的态度很好。',py:'Tā de tàidu hěn hǎo.',vi:'Thái độ của anh ấy rất tốt.'},
+  '小组':{zh:'我们分小组学习。',py:'Wǒmen fēn xiǎozǔ xuéxí.',vi:'Chúng tôi học theo nhóm nhỏ.'},
+  '数字':{zh:'这个数字很重要。',py:'Zhège shùzì hěn zhòngyào.',vi:'Con số này rất quan trọng.'},
+  '礼物':{zh:'谢谢你的礼物。',py:'Xièxie nǐ de lǐwù.',vi:'Cảm ơn món quà của bạn.'},
+  '酒店':{zh:'我们住在这家酒店。',py:'Wǒmen zhù zài zhè jiā jiǔdiàn.',vi:'Chúng tôi ở khách sạn này.'},
+  '交通':{zh:'这里的交通很方便。',py:'Zhèlǐ de jiāotōng hěn fāngbiàn.',vi:'Giao thông ở đây rất thuận tiện.'},
+  '亮':{zh:'房间里很亮。',py:'Fángjiān lǐ hěn liàng.',vi:'Trong phòng rất sáng.'},
+  '篇':{zh:'这篇文章很好。',py:'Zhè piān wénzhāng hěn hǎo.',vi:'Bài viết này rất hay.'},
+  '出口':{zh:'出口在那边。',py:'Chūkǒu zài nàbian.',vi:'Lối ra ở đằng kia.'},
+  '味道':{zh:'这个菜的味道很好。',py:'Zhège cài de wèidao hěn hǎo.',vi:'Món này có vị rất ngon.'},
+  '平':{zh:'这条路很平。',py:'Zhè tiáo lù hěn píng.',vi:'Con đường này rất bằng phẳng.'},
+  '出发':{zh:'我们八点出发。',py:'Wǒmen bā diǎn chūfā.',vi:'Chúng ta xuất phát lúc tám giờ.'},
+  '接到':{zh:'我接到了你的电话。',py:'Wǒ jiēdàole nǐ de diànhuà.',vi:'Tôi đã nhận được cuộc gọi của bạn.'},
+  '提高':{zh:'我想提高我的中文水平。',py:'Wǒ xiǎng tígāo wǒ de Zhōngwén shuǐpíng.',vi:'Tôi muốn nâng cao trình độ tiếng Trung của mình.'},
+  '千':{zh:'这个手机三千块。',py:'Zhège shǒujī sānqiān kuài.',vi:'Chiếc điện thoại này ba nghìn tệ.'},
+  '墙':{zh:'墙上挂着一张照片。',py:'Qiáng shang guàzhe yì zhāng zhàopiàn.',vi:'Trên tường treo một bức ảnh.'},
+  '满意':{zh:'我对结果很满意。',py:'Wǒ duì jiéguǒ hěn mǎnyì.',vi:'Tôi rất hài lòng với kết quả.'},
+  '食物':{zh:'这些食物很新鲜。',py:'Zhèxiē shíwù hěn xīnxiān.',vi:'Những thực phẩm này rất tươi.'},
+  '司机':{zh:'他是出租车司机。',py:'Tā shì chūzūchē sījī.',vi:'Anh ấy là tài xế taxi.'},
+  '大量':{zh:'这里有大量的水果。',py:'Zhèlǐ yǒu dàliàng de shuǐguǒ.',vi:'Ở đây có rất nhiều hoa quả.'},
+  '黄':{zh:'树叶变黄了。',py:'Shùyè biàn huáng le.',vi:'Lá cây đã chuyển vàng.'},
+  '轻':{zh:'这个包很轻。',py:'Zhège bāo hěn qīng.',vi:'Chiếc túi này rất nhẹ.'},
+  '信号':{zh:'这里没有信号。',py:'Zhèlǐ méiyǒu xìnhào.',vi:'Ở đây không có sóng.'},
+  '好多':{zh:'桌子上有好多书。',py:'Zhuōzi shang yǒu hǎoduō shū.',vi:'Trên bàn có rất nhiều sách.'},
+  '经理':{zh:'他是我们公司的经理。',py:'Tā shì wǒmen gōngsī de jīnglǐ.',vi:'Anh ấy là giám đốc công ty chúng tôi.'},
+  '大部分':{zh:'大部分学生都来了。',py:'Dàbùfen xuésheng dōu lái le.',vi:'Phần lớn học sinh đều đã đến.'},
+  '吹':{zh:'外面在刮风，风吹得很大。',py:'Wàimian zài guāfēng, fēng chuī de hěn dà.',vi:'Bên ngoài đang có gió, gió thổi rất mạnh.'},
+  '颜色':{zh:'你喜欢什么颜色？',py:'Nǐ xǐhuan shénme yánsè?',vi:'Bạn thích màu gì?'},
+  '成绩':{zh:'他的成绩很好。',py:'Tā de chéngjì hěn hǎo.',vi:'Thành tích của anh ấy rất tốt.'},
+  '角度':{zh:'换个角度想想。',py:'Huàn gè jiǎodù xiǎngxiang.',vi:'Hãy nghĩ theo góc độ khác.'},
+  '多么':{zh:'这个地方多么美啊！',py:'Zhège dìfang duōme měi a!',vi:'Nơi này đẹp biết bao!'},
+  '什么样':{zh:'你想要什么样的手机？',py:'Nǐ xiǎng yào shénmeyàng de shǒujī?',vi:'Bạn muốn điện thoại kiểu gì?'},
+  '语言':{zh:'汉语是一种很美的语言。',py:'Hànyǔ shì yì zhǒng hěn měi de yǔyán.',vi:'Tiếng Hán là một ngôn ngữ rất đẹp.'},
+  '网站':{zh:'这个网站很有用。',py:'Zhège wǎngzhàn hěn yǒuyòng.',vi:'Trang web này rất hữu ích.'},
+  '地球':{zh:'地球是圆的。',py:'Dìqiú shì yuán de.',vi:'Trái đất hình tròn.'},
+  '雪':{zh:'外面下雪了。',py:'Wàimian xiàxuě le.',vi:'Bên ngoài có tuyết rơi.'},
+  '那时':{zh:'那时我还很小。',py:'Nàshí wǒ hái hěn xiǎo.',vi:'Lúc đó tôi vẫn còn rất nhỏ.'},
+  '实际':{zh:'他的想法很实际。',py:'Tā de xiǎngfǎ hěn shíjì.',vi:'Suy nghĩ của anh ấy rất thực tế.'},
+  '心中':{zh:'他一直在我心中。',py:'Tā yìzhí zài wǒ xīnzhōng.',vi:'Anh ấy luôn ở trong lòng tôi.'},
+  '灯':{zh:'请开灯。',py:'Qǐng kāi dēng.',vi:'Xin bật đèn lên.'},
+  '太阳':{zh:'太阳出来了。',py:'Tàiyang chūlái le.',vi:'Mặt trời đã mọc rồi.'},
+  '可怕':{zh:'那部电影很可怕。',py:'Nà bù diànyǐng hěn kěpà.',vi:'Bộ phim đó rất đáng sợ.'},
+  '方便':{zh:'这里买东西很方便。',py:'Zhèlǐ mǎi dōngxi hěn fāngbiàn.',vi:'Mua đồ ở đây rất tiện.'},
+  '爬':{zh:'孩子在地上爬。',py:'Háizi zài dì shang pá.',vi:'Đứa trẻ đang bò trên mặt đất.'},
+  '差不多':{zh:'我们差不多到了。',py:'Wǒmen chàbuduō dào le.',vi:'Chúng ta gần đến rồi.'},
+  '高中':{zh:'我姐姐在高中学习。',py:'Wǒ jiějie zài gāozhōng xuéxí.',vi:'Chị tôi đang học trung học phổ thông.'},
+  '英语':{zh:'他英语说得很好。',py:'Tā Yīngyǔ shuō de hěn hǎo.',vi:'Anh ấy nói tiếng Anh rất giỏi.'},
+  '空气':{zh:'这里的空气很新鲜。',py:'Zhèlǐ de kōngqì hěn xīnxiān.',vi:'Không khí ở đây rất trong lành.'},
+  '以下':{zh:'请看以下的例子。',py:'Qǐng kàn yǐxià de lìzi.',vi:'Xin xem những ví dụ dưới đây.'},
+  '喊':{zh:'他大声喊我的名字。',py:'Tā dàshēng hǎn wǒ de míngzi.',vi:'Anh ấy hét to tên tôi.'},
+  '讲话':{zh:'校长在会上讲话。',py:'Xiàozhǎng zài huì shang jiǎnghuà.',vi:'Hiệu trưởng phát biểu trong cuộc họp.'},
+  '大多数':{zh:'大多数人都同意。',py:'Dàduōshù rén dōu tóngyì.',vi:'Đa số mọi người đều đồng ý.'},
+  '随便':{zh:'你随便坐吧。',py:'Nǐ suíbiàn zuò ba.',vi:'Bạn ngồi tuỳ ý đi.'},
+  '随时':{zh:'你随时可以给我打电话。',py:'Nǐ suíshí kěyǐ gěi wǒ dǎ diànhuà.',vi:'Bạn có thể gọi cho tôi bất cứ lúc nào.'},
+  '合适':{zh:'这件衣服很合适。',py:'Zhè jiàn yīfu hěn héshì.',vi:'Bộ quần áo này rất vừa vặn.'},
+  '相同':{zh:'我们的想法相同。',py:'Wǒmen de xiǎngfǎ xiāngtóng.',vi:'Suy nghĩ của chúng tôi giống nhau.'},
+  '出生':{zh:'他在河内出生。',py:'Tā zài Hénèi chūshēng.',vi:'Anh ấy sinh ra ở Hà Nội.'},
+  '以上':{zh:'十八岁以上才能开车。',py:'Shíbā suì yǐshàng cái néng kāichē.',vi:'Từ mười tám tuổi trở lên mới được lái xe.'},
+  '名单':{zh:'请看一下这个名单。',py:'Qǐng kàn yíxià zhège míngdān.',vi:'Xin xem qua danh sách này.'},
+  '答应':{zh:'他答应帮我。',py:'Tā dāying bāng wǒ.',vi:'Anh ấy đã đồng ý giúp tôi.'},
+  '公园':{zh:'我们周末去公园吧。',py:'Wǒmen zhōumò qù gōngyuán ba.',vi:'Cuối tuần chúng ta đi công viên đi.'},
+  '红色':{zh:'她喜欢红色的衣服。',py:'Tā xǐhuan hóngsè de yīfu.',vi:'Cô ấy thích quần áo màu đỏ.'},
+  '热情':{zh:'这里的人很热情。',py:'Zhèlǐ de rén hěn rèqíng.',vi:'Người ở đây rất nhiệt tình.'},
+  '到处':{zh:'公园里到处都是花。',py:'Gōngyuán lǐ dàochù dōu shì huā.',vi:'Trong công viên hoa nở khắp nơi.'},
+  '放下':{zh:'请把包放下。',py:'Qǐng bǎ bāo fàngxià.',vi:'Xin đặt túi xuống.'},
+  '观点':{zh:'他的观点很有意思。',py:'Tā de guāndiǎn hěn yǒuyìsi.',vi:'Quan điểm của anh ấy rất thú vị.'},
+  '公平':{zh:'这个比赛很公平。',py:'Zhège bǐsài hěn gōngpíng.',vi:'Cuộc thi này rất công bằng.'},
+  '高级':{zh:'这是一家高级饭店。',py:'Zhè shì yì jiā gāojí fàndiàn.',vi:'Đây là một nhà hàng cao cấp.'},
+  '早就':{zh:'我早就知道了。',py:'Wǒ zǎojiù zhīdào le.',vi:'Tôi đã biết từ lâu rồi.'},
+  '的话':{zh:'如果你忙的话，就别来了。',py:'Rúguǒ nǐ máng dehuà, jiù bié lái le.',vi:'Nếu bạn bận thì đừng đến nữa.'},
+  '骑':{zh:'他每天骑车上班。',py:'Tā měitiān qí chē shàngbān.',vi:'Anh ấy đi làm bằng xe đạp mỗi ngày.'},
+  '报纸':{zh:'爸爸每天看报纸。',py:'Bàba měitiān kàn bàozhǐ.',vi:'Bố tôi đọc báo mỗi ngày.'},
+  '响':{zh:'电话响了。',py:'Diànhuà xiǎng le.',vi:'Điện thoại reo rồi.'},
+  '收入':{zh:'他的收入不错。',py:'Tā de shōurù búcuò.',vi:'Thu nhập của anh ấy khá tốt.'},
+  '河':{zh:'这条河很长。',py:'Zhè tiáo hé hěn cháng.',vi:'Con sông này rất dài.'},
+  '练':{zh:'你要多练习汉字。',py:'Nǐ yào duō liàn hànzì.',vi:'Bạn phải luyện chữ Hán nhiều hơn.'},
+  '举':{zh:'请举手回答。',py:'Qǐng jǔ shǒu huídá.',vi:'Xin giơ tay trả lời.'},
+  '多久':{zh:'你学中文多久了？',py:'Nǐ xué Zhōngwén duōjiǔ le?',vi:'Bạn học tiếng Trung được bao lâu rồi?'},
+  '租':{zh:'我在这里租了一间房子。',py:'Wǒ zài zhèlǐ zūle yì jiān fángzi.',vi:'Tôi đã thuê một căn nhà ở đây.'},
+  '同事':{zh:'他是我的同事。',py:'Tā shì wǒ de tóngshì.',vi:'Anh ấy là đồng nghiệp của tôi.'},
+  '球队':{zh:'我们学校有一个足球队。',py:'Wǒmen xuéxiào yǒu yí gè zúqiúduì.',vi:'Trường chúng tôi có một đội bóng đá.'},
+  '舒服':{zh:'这把椅子很舒服。',py:'Zhè bǎ yǐzi hěn shūfu.',vi:'Chiếc ghế này rất thoải mái.'},
+  '上周':{zh:'上周我很忙。',py:'Shàngzhōu wǒ hěn máng.',vi:'Tuần trước tôi rất bận.'},
+  '单位':{zh:'他在一个大单位工作。',py:'Tā zài yí gè dà dānwèi gōngzuò.',vi:'Anh ấy làm việc ở một đơn vị lớn.'},
+  '体育':{zh:'他很喜欢体育。',py:'Tā hěn xǐhuan tǐyù.',vi:'Anh ấy rất thích thể thao.'},
+  '黑色':{zh:'他穿着黑色的鞋子。',py:'Tā chuānzhe hēisè de xiézi.',vi:'Anh ấy mang giày màu đen.'},
+  '道路':{zh:'这条道路很宽。',py:'Zhè tiáo dàolù hěn kuān.',vi:'Con đường này rất rộng.'},
+  '大人':{zh:'大人和孩子都喜欢这个地方。',py:'Dàren hé háizi dōu xǐhuan zhège dìfang.',vi:'Cả người lớn và trẻ em đều thích nơi này.'},
+  '角':{zh:'桌子的角很硬。',py:'Zhuōzi de jiǎo hěn yìng.',vi:'Góc bàn rất cứng.'},
+  '绿色':{zh:'我喜欢绿色的衣服。',py:'Wǒ xǐhuan lǜsè de yīfu.',vi:'Tôi thích quần áo màu xanh lá.'},
+  '旅行':{zh:'我们计划去旅行。',py:'Wǒmen jìhuà qù lǚxíng.',vi:'Chúng tôi định đi du lịch.'},
+  '公路':{zh:'这条公路很新。',py:'Zhè tiáo gōnglù hěn xīn.',vi:'Con đường cao tốc này rất mới.'},
+  '主人':{zh:'这只狗的主人是谁？',py:'Zhè zhī gǒu de zhǔrén shì shéi?',vi:'Chủ của con chó này là ai?'},
+  '信心':{zh:'我对自己很有信心。',py:'Wǒ duì zìjǐ hěn yǒu xìnxīn.',vi:'Tôi rất tự tin vào bản thân.'},
+  '故意':{zh:'他不是故意的。',py:'Tā bú shì gùyì de.',vi:'Anh ấy không cố ý đâu.'},
+  '闻':{zh:'我闻到了花香。',py:'Wǒ wéndàole huāxiāng.',vi:'Tôi ngửi thấy mùi hoa.'},
+  '看法':{zh:'你对这件事有什么看法？',py:'Nǐ duì zhè jiàn shì yǒu shénme kànfǎ?',vi:'Bạn có ý kiến gì về việc này?'},
+  '放心':{zh:'你放心吧，没问题。',py:'Nǐ fàngxīn ba, méi wèntí.',vi:'Bạn cứ yên tâm đi, không có vấn đề gì.'},
+  '草':{zh:'草地上有很多草。',py:'Cǎodì shang yǒu hěn duō cǎo.',vi:'Trên bãi cỏ có rất nhiều cỏ.'},
+  '湖':{zh:'这个湖很美。',py:'Zhège hú hěn měi.',vi:'Cái hồ này rất đẹp.'},
+  '正好':{zh:'这件衣服正好合适。',py:'Zhè jiàn yīfu zhènghǎo héshì.',vi:'Bộ quần áo này vừa vặn đúng.'},
+  '院':{zh:'他住在这个大院里。',py:'Tā zhù zài zhège dàyuàn lǐ.',vi:'Anh ấy sống trong khu tập thể này.'},
+  '安静':{zh:'图书馆里很安静。',py:'Túshūguǎn lǐ hěn ānjìng.',vi:'Trong thư viện rất yên tĩnh.'},
+  '道理':{zh:'他说的很有道理。',py:'Tā shuō de hěn yǒu dàolǐ.',vi:'Điều anh ấy nói rất có lý.'},
+  '公里':{zh:'这里离机场十公里。',py:'Zhèlǐ lí jīchǎng shí gōnglǐ.',vi:'Chỗ này cách sân bay mười cây số.'},
+  '好处':{zh:'运动有很多好处。',py:'Yùndòng yǒu hěn duō hǎochu.',vi:'Vận động có nhiều lợi ích.'},
+  '旅游':{zh:'我们暑假去旅游吧。',py:'Wǒmen shǔjià qù lǚyóu ba.',vi:'Kỳ nghỉ hè chúng ta đi du lịch nhé.'},
+  '作业':{zh:'我还没做完作业。',py:'Wǒ hái méi zuòwán zuòyè.',vi:'Tôi vẫn chưa làm xong bài tập.'},
+  '家长':{zh:'家长们都来开会了。',py:'Jiāzhǎngmen dōu lái kāihuì le.',vi:'Các phụ huynh đều đến họp rồi.'},
+  '绿':{zh:'树叶是绿的。',py:'Shùyè shì lǜ de.',vi:'Lá cây có màu xanh.'},
+  '重复':{zh:'请重复一下这句话。',py:'Qǐng chóngfù yíxià zhè jù huà.',vi:'Xin lặp lại câu này.'},
+  '小说':{zh:'我在看一本小说。',py:'Wǒ zài kàn yì běn xiǎoshuō.',vi:'Tôi đang đọc một cuốn tiểu thuyết.'},
+  '教师':{zh:'我爸爸是一名教师。',py:'Wǒ bàba shì yì míng jiàoshī.',vi:'Bố tôi là một giáo viên.'},
+  '白色':{zh:'她穿着一件白色的衣服。',py:'Tā chuānzhe yí jiàn báisè de yīfu.',vi:'Cô ấy mặc một chiếc áo màu trắng.'},
+  '理想':{zh:'他有一个理想。',py:'Tā yǒu yí gè lǐxiǎng.',vi:'Anh ấy có một lý tưởng.'},
+  '感动':{zh:'这个故事让我很感动。',py:'Zhège gùshi ràng wǒ hěn gǎndòng.',vi:'Câu chuyện này khiến tôi rất xúc động.'},
+  '出租车':{zh:'我们坐出租车去吧。',py:'Wǒmen zuò chūzūchē qù ba.',vi:'Chúng ta đi taxi đi.'},
+  '好事':{zh:'帮助别人是好事。',py:'Bāngzhù biéren shì hǎoshì.',vi:'Giúp đỡ người khác là việc tốt.'},
+  '提到':{zh:'他提到了这件事。',py:'Tā tídàole zhè jiàn shì.',vi:'Anh ấy đã nhắc đến chuyện này.'},
+  '不如':{zh:'坐火车不如坐飞机快。',py:'Zuò huǒchē bùrú zuò fēijī kuài.',vi:'Đi tàu hoả không nhanh bằng đi máy bay.'},
+  '题':{zh:'这道题很难。',py:'Zhè dào tí hěn nán.',vi:'Bài này rất khó.'},
+  '顾客':{zh:'顾客都很满意。',py:'Gùkè dōu hěn mǎnyì.',vi:'Khách hàng đều rất hài lòng.'},
+  '难过':{zh:'听到这个消息我很难过。',py:'Tīngdào zhège xiāoxi wǒ hěn nánguò.',vi:'Nghe tin này tôi rất buồn.'},
+  '组成':{zh:'这个队由十个人组成。',py:'Zhège duì yóu shí gè rén zǔchéng.',vi:'Đội này gồm mười người.'},
+  '流行':{zh:'这首歌很流行。',py:'Zhè shǒu gē hěn liúxíng.',vi:'Bài hát này rất thịnh hành.'},
+  '送给':{zh:'这是我送给你的礼物。',py:'Zhè shì wǒ sònggěi nǐ de lǐwù.',vi:'Đây là món quà tôi tặng bạn.'},
+  '不久':{zh:'他不久就会回来。',py:'Tā bùjiǔ jiù huì huílái.',vi:'Không lâu nữa anh ấy sẽ quay lại.'},
+  '客人':{zh:'家里来客人了。',py:'Jiā lǐ lái kèrén le.',vi:'Nhà có khách đến.'},
+  '人口':{zh:'这个城市人口很多。',py:'Zhège chéngshì rénkǒu hěn duō.',vi:'Thành phố này có dân số rất đông.'},
+  '平时':{zh:'平时我很少喝咖啡。',py:'Píngshí wǒ hěn shǎo hē kāfēi.',vi:'Bình thường tôi rất ít khi uống cà phê.'},
+  '比如说':{zh:'我喜欢水果，比如说苹果和香蕉。',py:'Wǒ xǐhuan shuǐguǒ, bǐrúshuō píngguǒ hé xiāngjiāo.',vi:'Tôi thích hoa quả, ví dụ như táo và chuối.'},
+  '不好意思':{zh:'不好意思，我迟到了。',py:'Bùhǎoyìsi, wǒ chídào le.',vi:'Xin lỗi, tôi đến muộn rồi.'},
+  '便宜':{zh:'这个东西很便宜。',py:'Zhège dōngxi hěn piányi.',vi:'Cái này rất rẻ.'},
+  '碰':{zh:'别碰我的东西。',py:'Bié pèng wǒ de dōngxi.',vi:'Đừng đụng vào đồ của tôi.'},
+  '请求':{zh:'他向老师提出请求。',py:'Tā xiàng lǎoshī tíchū qǐngqiú.',vi:'Anh ấy đưa ra yêu cầu với thầy giáo.'},
+  '准确':{zh:'请给我一个准确的时间。',py:'Qǐng gěi wǒ yí gè zhǔnquè de shíjiān.',vi:'Xin cho tôi một thời gian chính xác.'},
+  '碗':{zh:'请给我一个碗。',py:'Qǐng gěi wǒ yí gè wǎn.',vi:'Xin cho tôi một cái bát.'},
+  '碰到':{zh:'我在路上碰到了他。',py:'Wǒ zài lùshang pèngdàole tā.',vi:'Tôi đã gặp anh ấy trên đường.'},
+  '蓝色':{zh:'天空是蓝色的。',py:'Tiānkōng shì lánsè de.',vi:'Bầu trời có màu xanh.'},
+  '懂得':{zh:'他懂得很多东西。',py:'Tā dǒngde hěn duō dōngxi.',vi:'Anh ấy biết rất nhiều thứ.'},
+  '广场':{zh:'我们在广场见面吧。',py:'Wǒmen zài guǎngchǎng jiànmiàn ba.',vi:'Chúng ta gặp nhau ở quảng trường nhé.'},
+  '好久':{zh:'好久不见！',py:'Hǎojiǔ bú jiàn!',vi:'Lâu quá không gặp!'},
+  '夏天':{zh:'夏天很热。',py:'Xiàtiān hěn rè.',vi:'Mùa hè rất nóng.'},
+  '接下来':{zh:'接下来我们做什么？',py:'Jiē xiàlái wǒmen zuò shénme?',vi:'Tiếp theo chúng ta làm gì?'},
+  '早餐':{zh:'你吃早餐了吗？',py:'Nǐ chī zǎocān le ma?',vi:'Bạn ăn sáng chưa?'},
+  '图片':{zh:'这张图片很好看。',py:'Zhè zhāng túpiàn hěn hǎokàn.',vi:'Bức ảnh này rất đẹp.'},
+  '车辆':{zh:'路上有很多车辆。',py:'Lùshang yǒu hěn duō chēliàng.',vi:'Trên đường có rất nhiều xe cộ.'},
+  '有意思':{zh:'这本书很有意思。',py:'Zhè běn shū hěn yǒuyìsi.',vi:'Cuốn sách này rất thú vị.'},
+  '早晨':{zh:'我早晨七点起床。',py:'Wǒ zǎochén qī diǎn qǐchuáng.',vi:'Tôi dậy lúc bảy giờ sáng.'},
+  '出门':{zh:'我要出门了。',py:'Wǒ yào chūmén le.',vi:'Tôi phải ra ngoài rồi.'},
+  '以外':{zh:'除了他以外，大家都来了。',py:'Chúle tā yǐwài, dàjiā dōu lái le.',vi:'Ngoài anh ấy ra, mọi người đều đến rồi.'},
+  '做法':{zh:'这是一个好做法。',py:'Zhè shì yí gè hǎo zuòfǎ.',vi:'Đây là một cách làm hay.'},
+  '作家':{zh:'她想成为一名作家。',py:'Tā xiǎng chéngwéi yì míng zuòjiā.',vi:'Cô ấy muốn trở thành một nhà văn.'},
+  '全体':{zh:'全体同学都来了。',py:'Quántǐ tóngxué dōu lái le.',vi:'Toàn thể học sinh đều đã đến.'},
+  '地铁':{zh:'我坐地铁上班。',py:'Wǒ zuò dìtiě shàngbān.',vi:'Tôi đi tàu điện ngầm đi làm.'},
+  '熟':{zh:'这个西瓜很熟。',py:'Zhège xīguā hěn shú.',vi:'Quả dưa hấu này chín rồi.'},
+  '小时候':{zh:'小时候我很喜欢跑步。',py:'Xiǎoshíhou wǒ hěn xǐhuan pǎobù.',vi:'Hồi nhỏ tôi rất thích chạy bộ.'},
+  '全身':{zh:'我全身都很疼。',py:'Wǒ quánshēn dōu hěn téng.',vi:'Toàn thân tôi đều đau.'},
+  '练习':{zh:'我每天练习写汉字。',py:'Wǒ měitiān liànxí xiě hànzì.',vi:'Tôi luyện viết chữ Hán mỗi ngày.'},
+  '咱':{zh:'咱走吧。',py:'Zán zǒu ba.',vi:'Mình đi thôi.'},
+  '平安':{zh:'祝你一路平安。',py:'Zhù nǐ yílù píng’ān.',vi:'Chúc bạn thượng lộ bình an.'},
+  '人数':{zh:'教室里的人数不多。',py:'Jiàoshì lǐ de rénshù bù duō.',vi:'Số người trong lớp không nhiều.'},
+  '队长':{zh:'他是我们队的队长。',py:'Tā shì wǒmen duì de duìzhǎng.',vi:'Anh ấy là đội trưởng của đội chúng tôi.'},
+  '南方':{zh:'他从南方来。',py:'Tā cóng nánfāng lái.',vi:'Anh ấy đến từ miền nam.'},
+  '友好':{zh:'他对我们很友好。',py:'Tā duì wǒmen hěn yǒuhǎo.',vi:'Anh ấy rất thân thiện với chúng tôi.'},
+  '亿':{zh:'这个城市有一亿人口。',py:'Zhège chéngshì yǒu yí yì rénkǒu.',vi:'Thành phố này có một trăm triệu dân.'},
+  '对话':{zh:'我们用中文对话。',py:'Wǒmen yòng Zhōngwén duìhuà.',vi:'Chúng tôi trò chuyện bằng tiếng Trung.'},
+  '停车':{zh:'这里不能停车。',py:'Zhèlǐ bù néng tíngchē.',vi:'Ở đây không được đỗ xe.'},
+  '冬天':{zh:'冬天很冷。',py:'Dōngtiān hěn lěng.',vi:'Mùa đông rất lạnh.'},
+  '云':{zh:'天上有很多云。',py:'Tiān shang yǒu hěn duō yún.',vi:'Trên trời có rất nhiều mây.'},
+  '青年':{zh:'他是一个青年。',py:'Tā shì yí gè qīngnián.',vi:'Anh ấy là một thanh niên.'},
+  '好人':{zh:'他是一个好人。',py:'Tā shì yí gè hǎorén.',vi:'Anh ấy là một người tốt.'},
+  '大声':{zh:'请大声说话。',py:'Qǐng dàshēng shuōhuà.',vi:'Xin nói to lên.'},
+  '分开':{zh:'我们分开走吧。',py:'Wǒmen fēnkāi zǒu ba.',vi:'Chúng ta đi tách ra đi.'},
+  '校长':{zh:'校长很喜欢学生。',py:'Xiàozhǎng hěn xǐhuan xuésheng.',vi:'Hiệu trưởng rất yêu quý học sinh.'},
+  '市长':{zh:'市长来我们学校了。',py:'Shìzhǎng lái wǒmen xuéxiào le.',vi:'Thị trưởng đã đến trường chúng tôi.'},
+  '自行车':{zh:'我骑自行车上学。',py:'Wǒ qí zìxíngchē shàngxué.',vi:'Tôi đi xe đạp đến trường.'},
+  '相机':{zh:'这是一台新相机。',py:'Zhè shì yì tái xīn xiàngjī.',vi:'Đây là một chiếc máy ảnh mới.'},
+  '花园':{zh:'他家有一个花园。',py:'Tā jiā yǒu yí gè huāyuán.',vi:'Nhà anh ấy có một khu vườn.'},
+  '影片':{zh:'这部影片很好看。',py:'Zhè bù yǐngpiàn hěn hǎokàn.',vi:'Bộ phim này rất hay.'},
+  '温度':{zh:'今天的温度是多少？',py:'Jīntiān de wēndù shì duōshao?',vi:'Nhiệt độ hôm nay là bao nhiêu?'},
+  '等于':{zh:'一加一等于二。',py:'Yī jiā yī děngyú èr.',vi:'Một cộng một bằng hai.'},
+  '周年':{zh:'今天是我们结婚十周年。',py:'Jīntiān shì wǒmen jiéhūn shí zhōunián.',vi:'Hôm nay là kỷ niệm mười năm kết hôn của chúng tôi.'},
+  '节日':{zh:'春节是中国重要的节日。',py:'Chūnjié shì Zhōngguó zhòngyào de jiérì.',vi:'Tết là ngày lễ quan trọng của Trung Quốc.'},
+  '例如':{zh:'我喜欢水果，例如苹果。',py:'Wǒ xǐhuan shuǐguǒ, lìrú píngguǒ.',vi:'Tôi thích hoa quả, ví dụ như táo.'},
+  '重视':{zh:'老师很重视这次考试。',py:'Lǎoshī hěn zhòngshì zhè cì kǎoshì.',vi:'Thầy giáo rất coi trọng kỳ thi lần này.'},
+  '洗澡':{zh:'我要去洗澡了。',py:'Wǒ yào qù xǐzǎo le.',vi:'Tôi đi tắm đây.'},
+  '今后':{zh:'今后我会更努力。',py:'Jīnhòu wǒ huì gèng nǔlì.',vi:'Từ nay về sau tôi sẽ cố gắng hơn.'},
+  '这时':{zh:'这时门开了。',py:'Zhèshí mén kāi le.',vi:'Lúc này cửa mở ra.'},
+  '大大':{zh:'这大大提高了我的水平。',py:'Zhè dàdà tígāole wǒ de shuǐpíng.',vi:'Điều này đã nâng cao đáng kể trình độ của tôi.'},
+  '科学家':{zh:'他想成为科学家。',py:'Tā xiǎng chéngwéi kēxuéjiā.',vi:'Anh ấy muốn trở thành nhà khoa học.'},
+  '姓':{zh:'请问您姓什么？',py:'Qǐngwèn nín xìng shénme?',vi:'Xin hỏi ngài họ gì?'},
+  '篮球':{zh:'他喜欢打篮球。',py:'Tā xǐhuan dǎ lánqiú.',vi:'Anh ấy thích chơi bóng rổ.'},
+  '晚餐':{zh:'我们一起吃晚餐吧。',py:'Wǒmen yìqǐ chī wǎncān ba.',vi:'Chúng ta cùng ăn tối nhé.'},
+  '大门':{zh:'请从大门进去。',py:'Qǐng cóng dàmén jìnqù.',vi:'Xin đi vào từ cổng chính.'},
+  '晚会':{zh:'今晚有一个晚会。',py:'Jīnwǎn yǒu yí gè wǎnhuì.',vi:'Tối nay có một buổi dạ hội.'},
+  '大小':{zh:'这双鞋的大小正好。',py:'Zhè shuāng xié de dàxiǎo zhènghǎo.',vi:'Kích cỡ đôi giày này vừa vặn.'},
+  '不一定':{zh:'他不一定会来。',py:'Tā bù yídìng huì lái.',vi:'Chưa chắc anh ấy sẽ đến.'},
+  '少年':{zh:'他还是个少年。',py:'Tā háishi gè shàonián.',vi:'Cậu ấy vẫn còn là một thiếu niên.'},
+  '计算机':{zh:'他在学习计算机。',py:'Tā zài xuéxí jìsuànjī.',vi:'Anh ấy đang học về máy tính.'},
+  '难受':{zh:'我今天有点难受。',py:'Wǒ jīntiān yǒudiǎn nánshòu.',vi:'Hôm nay tôi hơi khó chịu trong người.'},
+  '刻':{zh:'现在是三点一刻。',py:'Xiànzài shì sān diǎn yí kè.',vi:'Bây giờ là ba giờ mười lăm.'},
+  '参观':{zh:'我们去参观博物馆吧。',py:'Wǒmen qù cānguān bówùguǎn ba.',vi:'Chúng ta đi tham quan bảo tàng đi.'},
+  '太太':{zh:'这位太太是我妈妈。',py:'Zhè wèi tàitai shì wǒ māma.',vi:'Bà đây là mẹ tôi.'},
+  '笔记本':{zh:'我把它写在笔记本上。',py:'Wǒ bǎ tā xiě zài bǐjìběn shang.',vi:'Tôi ghi nó vào sổ tay.'},
+  '对面':{zh:'银行在学校对面。',py:'Yínháng zài xuéxiào duìmiàn.',vi:'Ngân hàng ở đối diện trường học.'},
+  '信用卡':{zh:'我用信用卡付钱。',py:'Wǒ yòng xìnyòngkǎ fù qián.',vi:'Tôi trả tiền bằng thẻ tín dụng.'},
+  '青少年':{zh:'这本书是给青少年看的。',py:'Zhè běn shū shì gěi qīngshàonián kàn de.',vi:'Cuốn sách này dành cho thanh thiếu niên đọc.'},
+  '特点':{zh:'每个人都有自己的特点。',py:'Měi gè rén dōu yǒu zìjǐ de tèdiǎn.',vi:'Mỗi người đều có đặc điểm riêng của mình.'},
+  '阴':{zh:'今天天气很阴。',py:'Jīntiān tiānqì hěn yīn.',vi:'Hôm nay trời âm u.'},
+  '笑话':{zh:'他给我们讲了一个笑话。',py:'Tā gěi wǒmen jiǎngle yí gè xiàohua.',vi:'Anh ấy đã kể cho chúng tôi một câu chuyện cười.'},
+  '凉':{zh:'今天天气很凉。',py:'Jīntiān tiānqì hěn liáng.',vi:'Hôm nay trời mát.'},
+  '平常':{zh:'他平常很安静。',py:'Tā píngcháng hěn ānjìng.',vi:'Bình thường anh ấy rất trầm tính.'},
+  '不但':{zh:'他不但聪明，而且努力。',py:'Tā búdàn cōngming, érqiě nǔlì.',vi:'Anh ấy không những thông minh mà còn chăm chỉ.'},
+  '半夜':{zh:'他半夜才回家。',py:'Tā bànyè cái huí jiā.',vi:'Anh ấy đến nửa đêm mới về nhà.'},
+  '商量':{zh:'我们商量一下吧。',py:'Wǒmen shāngliang yíxià ba.',vi:'Chúng ta bàn bạc một chút nhé.'},
+  '黄色':{zh:'他喜欢黄色的花。',py:'Tā xǐhuan huángsè de huā.',vi:'Anh ấy thích hoa màu vàng.'},
+  '姓名':{zh:'请写上你的姓名。',py:'Qǐng xiěshang nǐ de xìngmíng.',vi:'Xin ghi họ tên của bạn vào.'},
+  '午餐':{zh:'我们一起吃午餐吧。',py:'Wǒmen yìqǐ chī wǔcān ba.',vi:'Chúng ta cùng ăn trưa nhé.'},
+  '排队':{zh:'请大家排队。',py:'Qǐng dàjiā páiduì.',vi:'Xin mọi người xếp hàng.'},
+  '校园':{zh:'校园很漂亮。',py:'Xiàoyuán hěn piàoliang.',vi:'Khuôn viên trường rất đẹp.'},
+  '等到':{zh:'等到明天再说吧。',py:'Děngdào míngtiān zài shuō ba.',vi:'Đợi đến ngày mai rồi nói tiếp nhé.'},
+  '一部分':{zh:'一部分学生已经走了。',py:'Yí bùfen xuésheng yǐjīng zǒu le.',vi:'Một phần học sinh đã đi rồi.'},
+  '爱人':{zh:'她是我的爱人。',py:'Tā shì wǒ de àiren.',vi:'Cô ấy là người bạn đời của tôi.'},
+  '多数':{zh:'多数人喜欢喝茶。',py:'Duōshù rén xǐhuan hē chá.',vi:'Đa số mọi người thích uống trà.'},
+  '西方':{zh:'这是西方的一个节日。',py:'Zhè shì Xīfāng de yí gè jiérì.',vi:'Đây là một ngày lễ của phương Tây.'},
+  '春天':{zh:'春天来了，花都开了。',py:'Chūntiān lái le, huā dōu kāi le.',vi:'Mùa xuân đến rồi, hoa đều nở cả.'},
+  '超市':{zh:'我去超市买东西。',py:'Wǒ qù chāoshì mǎi dōngxi.',vi:'Tôi đi siêu thị mua đồ.'},
+  '球场':{zh:'他们在球场打球。',py:'Tāmen zài qiúchǎng dǎqiú.',vi:'Họ đang chơi bóng ở sân.'},
+  '住院':{zh:'他生病了，正在住院。',py:'Tā shēngbìng le, zhèngzài zhùyuàn.',vi:'Anh ấy bị ốm, đang nằm viện.'},
+  '教学':{zh:'他喜欢教学工作。',py:'Tā xǐhuan jiàoxué gōngzuò.',vi:'Anh ấy thích công việc giảng dạy.'},
+  '椅子':{zh:'请坐这把椅子。',py:'Qǐng zuò zhè bǎ yǐzi.',vi:'Xin ngồi vào chiếc ghế này.'},
+  '座位':{zh:'这是你的座位。',py:'Zhè shì nǐ de zuòwèi.',vi:'Đây là chỗ ngồi của bạn.'},
+  '忽然':{zh:'他忽然笑了。',py:'Tā hūrán xiào le.',vi:'Anh ấy đột nhiên cười.'},
+  '假期':{zh:'假期你打算做什么？',py:'Jiàqī nǐ dǎsuàn zuò shénme?',vi:'Kỳ nghỉ bạn định làm gì?'},
+  '游客':{zh:'这里有很多游客。',py:'Zhèlǐ yǒu hěn duō yóukè.',vi:'Ở đây có rất nhiều khách du lịch.'},
+  '报名':{zh:'我想报名参加比赛。',py:'Wǒ xiǎng bàomíng cānjiā bǐsài.',vi:'Tôi muốn đăng ký tham gia thi đấu.'},
+  '拿到':{zh:'我拿到了新手机。',py:'Wǒ nádàole xīn shǒujī.',vi:'Tôi đã nhận được điện thoại mới.'},
+  '脏':{zh:'你的手很脏。',py:'Nǐ de shǒu hěn zāng.',vi:'Tay bạn bẩn quá.'},
+  '全家':{zh:'我们全家一起吃饭。',py:'Wǒmen quánjiā yìqǐ chīfàn.',vi:'Cả nhà chúng tôi cùng ăn cơm.'},
+  '从小':{zh:'他从小就喜欢音乐。',py:'Tā cóngxiǎo jiù xǐhuan yīnyuè.',vi:'Anh ấy thích âm nhạc từ nhỏ.'},
+  '饱':{zh:'我吃饱了。',py:'Wǒ chībǎo le.',vi:'Tôi ăn no rồi.'},
+  '一共':{zh:'一共多少钱？',py:'Yígòng duōshao qián?',vi:'Tổng cộng bao nhiêu tiền?'},
+  '月亮':{zh:'今晚月亮很亮。',py:'Jīnwǎn yuèliang hěn liàng.',vi:'Tối nay trăng rất sáng.'},
+  '公斤':{zh:'这个西瓜五公斤。',py:'Zhège xīguā wǔ gōngjīn.',vi:'Quả dưa hấu này nặng năm cân.'},
+  '北方':{zh:'他从北方来。',py:'Tā cóng běifāng lái.',vi:'Anh ấy đến từ miền bắc.'},
+  '平等':{zh:'我们应该平等对待每个人。',py:'Wǒmen yīnggāi píngděng duìdài měi gè rén.',vi:'Chúng ta nên đối xử bình đẳng với mọi người.'},
+  '打工':{zh:'他在打工赚钱。',py:'Tā zài dǎgōng zhuàn qián.',vi:'Anh ấy đang làm thêm kiếm tiền.'},
+  '星星':{zh:'晚上能看到很多星星。',py:'Wǎnshang néng kàndào hěn duō xīngxing.',vi:'Buổi tối có thể nhìn thấy rất nhiều ngôi sao.'},
+  '多云':{zh:'明天多云。',py:'Míngtiān duōyún.',vi:'Ngày mai nhiều mây.'},
+  '不满':{zh:'他对结果很不满。',py:'Tā duì jiéguǒ hěn bùmǎn.',vi:'Anh ấy rất không hài lòng với kết quả.'},
+  '例子':{zh:'请给我举一个例子。',py:'Qǐng gěi wǒ jǔ yí gè lìzi.',vi:'Xin cho tôi một ví dụ.'},
+  '教室':{zh:'同学们都在教室里。',py:'Tóngxuémen dōu zài jiàoshì lǐ.',vi:'Các bạn học đều đang ở trong lớp học.'},
+  '快要':{zh:'我们快要到了。',py:'Wǒmen kuàiyào dào le.',vi:'Chúng tôi sắp đến rồi.'},
+  '东方':{zh:'太阳从东方升起。',py:'Tàiyáng cóng dōngfāng shēngqǐ.',vi:'Mặt trời mọc từ phía đông.'},
+  '常见':{zh:'这是一个常见的问题。',py:'Zhè shì yí gè chángjiàn de wèntí.',vi:'Đây là một vấn đề thường gặp.'},
+  '商人':{zh:'他是一个商人。',py:'Tā shì yí gè shāngrén.',vi:'Anh ấy là một thương nhân.'},
+  '少数':{zh:'只有少数人知道。',py:'Zhǐyǒu shǎoshù rén zhīdào.',vi:'Chỉ có số ít người biết.'},
+  '走过':{zh:'他从我身边走过。',py:'Tā cóng wǒ shēnbiān zǒuguò.',vi:'Anh ấy đi ngang qua tôi.'},
+  '得出':{zh:'我们得出了结果。',py:'Wǒmen déchūle jiéguǒ.',vi:'Chúng tôi đã đưa ra được kết quả.'},
+  '起飞':{zh:'飞机马上要起飞了。',py:'Fēijī mǎshàng yào qǐfēi le.',vi:'Máy bay sắp cất cánh rồi.'},
+  '网球':{zh:'他每周打网球。',py:'Tā měi zhōu dǎ wǎngqiú.',vi:'Anh ấy chơi quần vợt mỗi tuần.'},
+  '停车场':{zh:'停车场在哪里？',py:'Tíngchēchǎng zài nǎlǐ?',vi:'Bãi đỗ xe ở đâu?'},
+  '大海':{zh:'我喜欢看大海。',py:'Wǒ xǐhuan kàn dàhǎi.',vi:'Tôi thích ngắm biển.'},
+  '做饭':{zh:'妈妈在做饭。',py:'Māma zài zuòfàn.',vi:'Mẹ đang nấu cơm.'},
+  '出租':{zh:'这个房子出租。',py:'Zhège fángzi chūzū.',vi:'Ngôi nhà này cho thuê.'},
+  '这时候':{zh:'这时候他来了。',py:'Zhè shíhou tā lái le.',vi:'Lúc này anh ấy đã đến.'},
+  '老是':{zh:'他老是迟到。',py:'Tā lǎoshi chídào.',vi:'Anh ấy lúc nào cũng đến muộn.'},
+  '月份':{zh:'现在是几月份？',py:'Xiànzài shì jǐ yuèfèn?',vi:'Bây giờ là tháng mấy?'},
+  '坏人':{zh:'他不是坏人。',py:'Tā bú shì huàirén.',vi:'Anh ấy không phải người xấu.'},
+  '天上':{zh:'小鸟在天上飞。',py:'Xiǎoniǎo zài tiānshang fēi.',vi:'Chim nhỏ bay trên trời.'},
+  '旅客':{zh:'机场里有很多旅客。',py:'Jīchǎng lǐ yǒu hěn duō lǚkè.',vi:'Trong sân bay có rất nhiều hành khách.'},
+  '大衣':{zh:'冬天要穿大衣。',py:'Dōngtiān yào chuān dàyī.',vi:'Mùa đông phải mặc áo khoác dày.'},
+  '学期':{zh:'这个学期很忙。',py:'Zhège xuéqī hěn máng.',vi:'Học kỳ này rất bận.'},
+  '路边':{zh:'他在路边等我。',py:'Tā zài lùbiān děng wǒ.',vi:'Anh ấy đợi tôi bên đường.'},
+  '难题':{zh:'这是一个难题。',py:'Zhè shì yí gè nántí.',vi:'Đây là một bài toán khó.'},
+  '入口':{zh:'入口在那边。',py:'Rùkǒu zài nàbian.',vi:'Lối vào ở đằng kia.'},
+  '实习':{zh:'他在公司实习。',py:'Tā zài gōngsī shíxí.',vi:'Anh ấy đang thực tập ở công ty.'},
+  '点头':{zh:'他点头同意了。',py:'Tā diǎntóu tóngyì le.',vi:'Anh ấy gật đầu đồng ý.'},
+  '手表':{zh:'这是一块新手表。',py:'Zhè shì yí kuài xīn shǒubiǎo.',vi:'Đây là một chiếc đồng hồ đeo tay mới.'},
+  '院长':{zh:'他是医院的院长。',py:'Tā shì yīyuàn de yuànzhǎng.',vi:'Ông ấy là viện trưởng bệnh viện.'},
+  '东北':{zh:'他是东北人。',py:'Tā shì Dōngběi rén.',vi:'Anh ấy là người vùng Đông Bắc.'},
+  '夜里':{zh:'他夜里工作。',py:'Tā yèli gōngzuò.',vi:'Anh ấy làm việc vào ban đêm.'},
+  '音乐会':{zh:'我们去看音乐会吧。',py:'Wǒmen qù kàn yīnyuèhuì ba.',vi:'Chúng ta đi xem buổi hoà nhạc đi.'},
+  '中年':{zh:'他已经是中年人了。',py:'Tā yǐjīng shì zhōngnián rén le.',vi:'Anh ấy đã là người trung niên rồi.'},
+  '院子':{zh:'我家有一个院子。',py:'Wǒ jiā yǒu yí gè yuànzi.',vi:'Nhà tôi có một cái sân.'},
+  '找出':{zh:'请找出正确的答案。',py:'Qǐng zhǎochū zhèngquè de dá’àn.',vi:'Xin tìm ra đáp án đúng.'},
+  '名称':{zh:'这个地方的名称很特别。',py:'Zhège dìfang de míngchēng hěn tèbié.',vi:'Tên gọi của nơi này rất đặc biệt.'},
+  '分数':{zh:'他的分数很高。',py:'Tā de fēnshù hěn gāo.',vi:'Điểm số của anh ấy rất cao.'},
+  '瓶子':{zh:'这个瓶子是空的。',py:'Zhège píngzi shì kōng de.',vi:'Cái chai này rỗng.'},
+  '举手':{zh:'有问题请举手。',py:'Yǒu wèntí qǐng jǔshǒu.',vi:'Có câu hỏi xin giơ tay.'},
+  '复习':{zh:'我在复习功课。',py:'Wǒ zài fùxí gōngkè.',vi:'Tôi đang ôn bài.'},
+  '课堂':{zh:'在课堂上要认真听。',py:'Zài kètáng shang yào rènzhēn tīng.',vi:'Trong lớp học phải chú ý lắng nghe.'},
+  '出国':{zh:'他明年要出国。',py:'Tā míngnián yào chūguó.',vi:'Sang năm anh ấy sẽ đi nước ngoài.'},
+  '秋天':{zh:'秋天的天气很舒服。',py:'Qiūtiān de tiānqì hěn shūfu.',vi:'Thời tiết mùa thu rất dễ chịu.'},
+  '护照':{zh:'别忘了带护照。',py:'Bié wàngle dài hùzhào.',vi:'Đừng quên mang hộ chiếu.'},
+  '下雪':{zh:'外面在下雪。',py:'Wàimian zài xiàxuě.',vi:'Bên ngoài đang có tuyết rơi.'},
+  '英文':{zh:'这本书是英文的。',py:'Zhè běn shū shì Yīngwén de.',vi:'Cuốn sách này bằng tiếng Anh.'},
+  '气温':{zh:'今天的气温很低。',py:'Jīntiān de qìwēn hěn dī.',vi:'Nhiệt độ không khí hôm nay rất thấp.'},
+  '画家':{zh:'他是一位有名的画家。',py:'Tā shì yí wèi yǒumíng de huàjiā.',vi:'Ông ấy là một hoạ sĩ nổi tiếng.'},
+  '骑车':{zh:'我喜欢骑车上班。',py:'Wǒ xǐhuan qíchē shàngbān.',vi:'Tôi thích đi xe đạp đi làm.'},
+  '西南':{zh:'他家在城市的西南边。',py:'Tā jiā zài chéngshì de xīnán bian.',vi:'Nhà anh ấy ở phía tây nam thành phố.'},
+  '西北':{zh:'他去了西北旅游。',py:'Tā qùle Xīběi lǚyóu.',vi:'Anh ấy đã đi du lịch vùng Tây Bắc.'},
+  '海边':{zh:'我们去海边玩儿吧。',py:'Wǒmen qù hǎibiān wánr ba.',vi:'Chúng ta ra bờ biển chơi đi.'},
+  '住房':{zh:'这里的住房很贵。',py:'Zhèlǐ de zhùfáng hěn guì.',vi:'Nhà ở đây rất đắt.'},
+  '出院':{zh:'他明天可以出院。',py:'Tā míngtiān kěyǐ chūyuàn.',vi:'Ngày mai anh ấy có thể xuất viện.'},
+  '体育馆':{zh:'我们在体育馆打球。',py:'Wǒmen zài tǐyùguǎn dǎqiú.',vi:'Chúng tôi chơi bóng ở nhà thi đấu.'},
+  '老朋友':{zh:'他是我的老朋友。',py:'Tā shì wǒ de lǎopéngyou.',vi:'Anh ấy là bạn cũ của tôi.'},
+  '菜单':{zh:'请给我看看菜单。',py:'Qǐng gěi wǒ kànkan càidān.',vi:'Xin cho tôi xem thực đơn.'},
+  '年级':{zh:'你上几年级？',py:'Nǐ shàng jǐ niánjí?',vi:'Bạn học lớp mấy?'},
+  '走开':{zh:'请你走开。',py:'Qǐng nǐ zǒukāi.',vi:'Xin bạn tránh ra.'},
+  '笔记':{zh:'我做了很多笔记。',py:'Wǒ zuòle hěn duō bǐjì.',vi:'Tôi đã ghi rất nhiều chú thích.'},
+  '外地':{zh:'他是外地人。',py:'Tā shì wàidì rén.',vi:'Anh ấy là người từ nơi khác đến.'},
+  '休假':{zh:'他现在在休假。',py:'Tā xiànzài zài xiūjià.',vi:'Bây giờ anh ấy đang nghỉ phép.'},
+  '小声':{zh:'请小声说话。',py:'Qǐng xiǎoshēng shuōhuà.',vi:'Xin nói nhỏ tiếng thôi.'},
+  '大自然':{zh:'我们要爱护大自然。',py:'Wǒmen yào àihù dàzìrán.',vi:'Chúng ta phải bảo vệ thiên nhiên.'},
+  '送到':{zh:'请把这个送到他家。',py:'Qǐng bǎ zhège sòngdào tā jiā.',vi:'Xin đưa cái này đến nhà anh ấy.'},
+  '打印':{zh:'请帮我打印这份文件。',py:'Qǐng bāng wǒ dǎyìn zhè fèn wénjiàn.',vi:'Xin giúp tôi in tài liệu này.'},
+  '斤':{zh:'这个苹果两斤。',py:'Zhège píngguǒ liǎng jīn.',vi:'Số táo này nặng hai cân.'},
+  '老年':{zh:'他现在是老年人了。',py:'Tā xiànzài shì lǎonián rén le.',vi:'Bây giờ ông ấy đã là người cao tuổi.'},
+  '照相':{zh:'我们在这里照相吧。',py:'Wǒmen zài zhèlǐ zhàoxiàng ba.',vi:'Chúng ta chụp ảnh ở đây đi.'},
+  '动物园':{zh:'周末我们去动物园吧。',py:'Zhōumò wǒmen qù dòngwùyuán ba.',vi:'Cuối tuần chúng ta đi sở thú đi.'},
+  '草地':{zh:'孩子们在草地上玩儿。',py:'Háizimen zài cǎodì shang wánr.',vi:'Bọn trẻ đang chơi trên bãi cỏ.'},
+  '药店':{zh:'药店在医院旁边。',py:'Yàodiàn zài yīyuàn pángbiān.',vi:'Hiệu thuốc ở cạnh bệnh viện.'},
+  '回国':{zh:'他明年回国。',py:'Tā míngnián huíguó.',vi:'Sang năm anh ấy về nước.'},
+  '关机':{zh:'请把手机关机。',py:'Qǐng bǎ shǒujī guānjī.',vi:'Xin tắt điện thoại đi.'},
+  '晴':{zh:'今天天气很晴。',py:'Jīntiān tiānqì hěn qíng.',vi:'Hôm nay trời rất quang đãng.'},
+  '班长':{zh:'他是我们班的班长。',py:'Tā shì wǒmen bān de bānzhǎng.',vi:'Bạn ấy là lớp trưởng lớp chúng tôi.'},
+  '常用':{zh:'这是一个常用的词。',py:'Zhè shì yí gè chángyòng de cí.',vi:'Đây là một từ thường dùng.'},
+  '里头':{zh:'东西在包里头。',py:'Dōngxi zài bāo lǐtou.',vi:'Đồ ở trong túi.'},
+  '请客':{zh:'今天我请客。',py:'Jīntiān wǒ qǐngkè.',vi:'Hôm nay tôi mời.'},
+  '日报':{zh:'他每天看日报。',py:'Tā měitiān kàn rìbào.',vi:'Anh ấy đọc nhật báo mỗi ngày.'},
+  '行人':{zh:'路上有很多行人。',py:'Lùshang yǒu hěn duō xíngrén.',vi:'Trên đường có rất nhiều người đi bộ.'},
+  '开学':{zh:'下星期开学。',py:'Xià xīngqī kāixué.',vi:'Tuần sau khai giảng.'},
+  '走进':{zh:'他走进了教室。',py:'Tā zǒujìnle jiàoshì.',vi:'Anh ấy bước vào lớp học.'},
+  '洗衣机':{zh:'我家有一台洗衣机。',py:'Wǒ jiā yǒu yì tái xǐyījī.',vi:'Nhà tôi có một máy giặt.'},
+  '词语':{zh:'请解释这个词语。',py:'Qǐng jiěshì zhège cíyǔ.',vi:'Xin giải thích từ này.'},
+  '句子':{zh:'请用这个词造一个句子。',py:'Qǐng yòng zhège cí zào yí gè jùzi.',vi:'Xin dùng từ này đặt một câu.'},
+  '筷子':{zh:'我不太会用筷子。',py:'Wǒ bú tài huì yòng kuàizi.',vi:'Tôi không giỏi dùng đũa lắm.'},
+  '体育场':{zh:'比赛在体育场举行。',py:'Bǐsài zài tǐyùchǎng jǔxíng.',vi:'Trận đấu diễn ra ở sân vận động.'},
+  '组长':{zh:'他是我们组的组长。',py:'Tā shì wǒmen zǔ de zǔzhǎng.',vi:'Bạn ấy là tổ trưởng của tổ chúng tôi.'},
+  '作文':{zh:'我在写一篇作文。',py:'Wǒ zài xiě yì piān zuòwén.',vi:'Tôi đang viết một bài văn.'},
+  '东南':{zh:'越南在中国的东南方。',py:'Yuènán zài Zhōngguó de dōngnán fāng.',vi:'Việt Nam ở phía đông nam Trung Quốc.'},
+  '个子':{zh:'他的个子很高。',py:'Tā de gèzi hěn gāo.',vi:'Anh ấy có vóc dáng cao.'},
+  '难看':{zh:'这件衣服很难看。',py:'Zhè jiàn yīfu hěn nánkàn.',vi:'Bộ quần áo này rất xấu.'},
+  '有点儿':{zh:'我有点儿累。',py:'Wǒ yǒudiǎnr lèi.',vi:'Tôi hơi mệt một chút.'},
+  '地铁站':{zh:'地铁站在哪里？',py:'Dìtiězhàn zài nǎlǐ?',vi:'Ga tàu điện ngầm ở đâu?'},
+  '快餐':{zh:'我们吃快餐吧。',py:'Wǒmen chī kuàicān ba.',vi:'Chúng ta ăn đồ ăn nhanh đi.'},
+  '站住':{zh:'站住，别走！',py:'Zhànzhù, bié zǒu!',vi:'Đứng lại, đừng đi!'},
+  '饺子':{zh:'我喜欢吃饺子。',py:'Wǒ xǐhuan chī jiǎozi.',vi:'Tôi thích ăn sủi cảo.'},
+  '开机':{zh:'请打开机，把电脑开机。',py:'Qǐng dǎkāi jī, bǎ diànnǎo kāijī.',vi:'Xin bật máy tính lên.'},
+  '公共汽车':{zh:'我坐公共汽车上班。',py:'Wǒ zuò gōnggòng qìchē shàngbān.',vi:'Tôi đi xe buýt đi làm.'},
+  '碰见':{zh:'我在路上碰见了老朋友。',py:'Wǒ zài lùshang pèngjiànle lǎopéngyou.',vi:'Tôi tình cờ gặp bạn cũ trên đường.'},
+  '字典':{zh:'请借我一本字典。',py:'Qǐng jiè wǒ yì běn zìdiǎn.',vi:'Xin cho tôi mượn một cuốn tự điển.'},
+  '排球':{zh:'他喜欢打排球。',py:'Tā xǐhuan dǎ páiqiú.',vi:'Anh ấy thích chơi bóng chuyền.'},
+  '干杯':{zh:'让我们干杯！',py:'Ràng wǒmen gānbēi!',vi:'Chúng ta nâng ly nào!'},
+  '过年':{zh:'我们回家过年。',py:'Wǒmen huí jiā guònián.',vi:'Chúng tôi về nhà ăn Tết.'},
+  '零下':{zh:'今天是零下五度。',py:'Jīntiān shì língxià wǔ dù.',vi:'Hôm nay là âm năm độ.'},
+  '拿出':{zh:'他从包里拿出一本书。',py:'Tā cóng bāo lǐ náchū yì běn shū.',vi:'Anh ấy lấy từ trong túi ra một cuốn sách.'},
+  '中餐':{zh:'他更喜欢吃中餐。',py:'Tā gèng xǐhuan chī zhōngcān.',vi:'Anh ấy thích ăn món Trung hơn.'},
+  '晴天':{zh:'明天是晴天。',py:'Míngtiān shì qíngtiān.',vi:'Ngày mai trời quang.'},
+  '普通话':{zh:'他普通话说得很标准。',py:'Tā pǔtōnghuà shuō de hěn biāozhǔn.',vi:'Anh ấy nói tiếng phổ thông rất chuẩn.'},
+  '全年':{zh:'他全年都在工作。',py:'Tā quánnián dōu zài gōngzuò.',vi:'Anh ấy làm việc cả năm.'},
+  '爬山':{zh:'周末我们去爬山吧。',py:'Zhōumò wǒmen qù páshān ba.',vi:'Cuối tuần chúng ta đi leo núi đi.'},
+  '那会儿':{zh:'那会儿我还很小。',py:'Nà huìr wǒ hái hěn xiǎo.',vi:'Lúc đó tôi vẫn còn rất nhỏ.'},
+  '黑板':{zh:'老师在黑板上写字。',py:'Lǎoshī zài hēibǎn shang xiězì.',vi:'Thầy giáo viết chữ lên bảng đen.'},
+  '外卖':{zh:'我们叫外卖吧。',py:'Wǒmen jiào wàimài ba.',vi:'Chúng ta gọi đồ ăn giao tận nơi đi.'},
+  '方便面':{zh:'他喜欢吃方便面。',py:'Tā xǐhuan chī fāngbiànmiàn.',vi:'Anh ấy thích ăn mì ăn liền.'},
+  '饭馆':{zh:'这家饭馆的菜很好吃。',py:'Zhè jiā fànguǎn de cài hěn hǎochī.',vi:'Món ăn ở quán này rất ngon.'},
+  '球鞋':{zh:'我买了一双新球鞋。',py:'Wǒ mǎile yì shuāng xīn qiúxié.',vi:'Tôi đã mua một đôi giày thể thao mới.'},
+  '流利':{zh:'他中文说得很流利。',py:'Tā Zhōngwén shuō de hěn liúlì.',vi:'Anh ấy nói tiếng Trung rất trôi chảy.'},
+  '交朋友':{zh:'我喜欢交朋友。',py:'Wǒ xǐhuan jiāo péngyou.',vi:'Tôi thích kết bạn.'},
+  '一路顺风':{zh:'祝你一路顺风！',py:'Zhù nǐ yílùshùnfēng!',vi:'Chúc bạn thượng lộ bình an!'},
+  '晚报':{zh:'他每天看晚报。',py:'Tā měitiān kàn wǎnbào.',vi:'Anh ấy đọc báo buổi chiều mỗi ngày.'},
+  '难听':{zh:'这首歌很难听。',py:'Zhè shǒu gē hěn nántīng.',vi:'Bài hát này nghe rất dở.'},
+  '药水':{zh:'医生给了我一瓶药水。',py:'Yīshēng gěile wǒ yì píng yàoshuǐ.',vi:'Bác sĩ đã cho tôi một chai thuốc nước.'},
+  '中医':{zh:'他相信中医。',py:'Tā xiāngxìn Zhōngyī.',vi:'Anh ấy tin vào y học cổ truyền Trung Quốc.'},
+  '坏处':{zh:'抽烟对身体有坏处。',py:'Chōuyān duì shēntǐ yǒu huàichu.',vi:'Hút thuốc có hại cho sức khoẻ.'},
+  '前年':{zh:'前年我去过中国。',py:'Qiánnián wǒ qùguo Zhōngguó.',vi:'Năm kia tôi đã đến Trung Quốc.'},
+  '词典':{zh:'这本词典很有用。',py:'Zhè běn cídiǎn hěn yǒuyòng.',vi:'Cuốn từ điển này rất hữu ích.'},
+  '千克':{zh:'这个箱子重十千克。',py:'Zhège xiāngzi zhòng shí qiānkè.',vi:'Cái thùng này nặng mười ki-lô-gam.'},
+  '问路':{zh:'他向我问路。',py:'Tā xiàng wǒ wènlù.',vi:'Anh ấy hỏi đường tôi.'},
+  '叫作':{zh:'这个东西叫作什么？',py:'Zhège dōngxi jiàozuò shénme?',vi:'Cái này gọi là gì?'},
+  '凉快':{zh:'晚上比较凉快。',py:'Wǎnshang bǐjiào liángkuai.',vi:'Buổi tối mát mẻ hơn.'},
+  '午睡':{zh:'我每天午睡半个小时。',py:'Wǒ měitiān wǔshuì bàn gè xiǎoshí.',vi:'Tôi ngủ trưa nửa tiếng mỗi ngày.'},
+  '药片':{zh:'请按时吃药片。',py:'Qǐng ànshí chī yàopiàn.',vi:'Xin uống viên thuốc đúng giờ.'},
+  '音节':{zh:'这个字有一个音节。',py:'Zhège zì yǒu yí gè yīnjié.',vi:'Chữ này có một âm tiết.'},
+  '中级':{zh:'我在学中级汉语。',py:'Wǒ zài xué zhōngjí Hànyǔ.',vi:'Tôi đang học tiếng Hán trình độ trung cấp.'},
+  '一点点':{zh:'我懂一点点中文。',py:'Wǒ dǒng yìdiǎndiǎn Zhōngwén.',vi:'Tôi biết một chút xíu tiếng Trung.'},
+  '春节':{zh:'春节快乐！',py:'Chūnjié kuàilè!',vi:'Chúc mừng năm mới!'},
+  '留学生':{zh:'他是一名留学生。',py:'Tā shì yì míng liúxuéshēng.',vi:'Anh ấy là một du học sinh.'},
+  '阴天':{zh:'今天是阴天。',py:'Jīntiān shì yīntiān.',vi:'Hôm nay là ngày trời âm u.'},
+  '西医':{zh:'他去看西医了。',py:'Tā qù kàn xīyī le.',vi:'Anh ấy đã đi khám bác sĩ Tây y.'},
+  '听讲':{zh:'上课要认真听讲。',py:'Shàngkè yào rènzhēn tīngjiǎng.',vi:'Trong giờ học phải chú ý nghe giảng.'},
+  '考生':{zh:'考场里有很多考生。',py:'Kǎochǎng lǐ yǒu hěn duō kǎoshēng.',vi:'Trong phòng thi có rất nhiều thí sinh.'},
+  '读音':{zh:'这个字的读音是什么？',py:'Zhège zì de dúyīn shì shénme?',vi:'Cách đọc của chữ này là gì?'},
+  '中小学':{zh:'这是一所中小学。',py:'Zhè shì yì suǒ zhōngxiǎoxué.',vi:'Đây là một trường trung tiểu học.'},
+  '西餐':{zh:'我们去吃西餐吧。',py:'Wǒmen qù chī xīcān ba.',vi:'Chúng ta đi ăn món Tây đi.'},
+  '一路平安':{zh:'祝你一路平安！',py:'Zhù nǐ yílùpíng’ān!',vi:'Chúc bạn thượng lộ bình an!'},
+  '不一会儿':{zh:'他不一会儿就回来了。',py:'Tā bù yíhuìr jiù huílai le.',vi:'Chỉ một lát sau anh ấy đã quay lại.'},
+  '干活儿':{zh:'他在田里干活儿。',py:'Tā zài tián lǐ gànhuór.',vi:'Anh ấy đang làm việc ở ngoài ruộng.'},
+  '不太':{zh:'这个不太贵。',py:'Zhège bú tài guì.',vi:'Cái này không đắt lắm.'},
+  '生词':{zh:'这篇课文有很多生词。',py:'Zhè piān kèwén yǒu hěn duō shēngcí.',vi:'Bài khoá này có rất nhiều từ mới.'},
+  '画儿':{zh:'这是一张画儿。',py:'Zhè shì yì zhāng huàr.',vi:'Đây là một bức tranh.'},
+  '短信':{zh:'我给你发了一条短信。',py:'Wǒ gěi nǐ fāle yì tiáo duǎnxìn.',vi:'Tôi đã gửi cho bạn một tin nhắn.'},
+  '公交车':{zh:'他坐公交车来的。',py:'Tā zuò gōngjiāochē lái de.',vi:'Anh ấy đến bằng xe buýt.'},
+  '见过':{zh:'我见过他一次。',py:'Wǒ jiànguo tā yí cì.',vi:'Tôi đã gặp anh ấy một lần.'},
+  '快点儿':{zh:'快点儿，我们要迟到了。',py:'Kuài diǎnr, wǒmen yào chídào le.',vi:'Nhanh lên, chúng ta sắp muộn rồi.'},
+  '那时候':{zh:'那时候我们还年轻。',py:'Nà shíhou wǒmen hái niánqīng.',vi:'Lúc đó chúng tôi vẫn còn trẻ.'},
+  '挺好':{zh:'今天天气挺好的。',py:'Jīntiān tiānqì tǐng hǎo de.',vi:'Hôm nay thời tiết khá đẹp.'},
+  '下周':{zh:'我们下周见面吧。',py:'Wǒmen xiàzhōu jiànmiàn ba.',vi:'Tuần sau chúng ta gặp nhau nhé.'},
+  '笑话儿':{zh:'他讲了一个笑话儿。',py:'Tā jiǎngle yí gè xiàohuar.',vi:'Anh ấy đã kể một câu chuyện cười.'},
+  '银行卡':{zh:'我把钱存在银行卡里。',py:'Wǒ bǎ qián cún zài yínhángkǎ lǐ.',vi:'Tôi gửi tiền vào thẻ ngân hàng.'},
+  '有空儿':{zh:'你什么时候有空儿？',py:'Nǐ shénme shíhou yǒukòngr?',vi:'Khi nào bạn rảnh?'},
+  '有一点儿':{zh:'我有一点儿饿。',py:'Wǒ yǒu yìdiǎnr è.',vi:'Tôi hơi đói một chút.'},
+  '把':{zh:'请把门关上。',py:'Qǐng bǎ mén guānshàng.',vi:'Xin hãy đóng cửa lại.'},
+  '被':{zh:'杯子被他打破了。',py:'Bēizi bèi tā dǎpò le.',vi:'Cái cốc bị anh ấy làm vỡ.'},
+  '就是':{zh:'这就是我要的东西。',py:'Zhè jiùshì wǒ yào de dōngxi.',vi:'Đây chính là thứ tôi cần.'},
+  '时':{zh:'上课时请安静。',py:'Shàngkè shí qǐng ānjìng.',vi:'Khi vào tiết học xin giữ yên lặng.'},
+  '需要':{zh:'我需要你的帮助。',py:'Wǒ xūyào nǐ de bāngzhù.',vi:'Tôi cần sự giúp đỡ của bạn.'},
+  '开始':{zh:'电影马上要开始了。',py:'Diànyǐng mǎshàng yào kāishǐ le.',vi:'Bộ phim sắp bắt đầu rồi.'},
+  '并':{zh:'他学习努力，并取得了好成绩。',py:'Tā xuéxí nǔlì, bìng qǔdéle hǎo chéngjì.',vi:'Anh ấy học chăm chỉ, và đã đạt được thành tích tốt.'},
+  '所':{zh:'这是我要找的所在。',py:'Zhè shì wǒ yào zhǎo de suǒzài.',vi:'Đây là nơi tôi cần tìm.'},
+  '死':{zh:'这棵树已经死了。',py:'Zhè kē shù yǐjīng sǐ le.',vi:'Cái cây này đã chết rồi.'},
+  '种':{zh:'这种水果很甜。',py:'Zhè zhǒng shuǐguǒ hěn tián.',vi:'Loại hoa quả này rất ngọt.'},
+  '希望':{zh:'我希望你能来。',py:'Wǒ xīwàng nǐ néng lái.',vi:'Tôi hy vọng bạn có thể đến.'},
+  '发生':{zh:'这件事是什么时候发生的？',py:'Zhè jiàn shì shì shénme shíhou fāshēng de?',vi:'Việc này xảy ra khi nào vậy?'},
+  '为了':{zh:'他为了工作搬到了北京。',py:'Tā wèile gōngzuò bāndàole Běijīng.',vi:'Anh ấy vì công việc mà chuyển đến Bắc Kinh.'},
+  '只是':{zh:'我只是想休息一下。',py:'Wǒ zhǐshì xiǎng xiūxi yíxià.',vi:'Tôi chỉ muốn nghỉ ngơi một chút.'},
+  '世界':{zh:'这是一个美丽的世界。',py:'Zhè shì yí gè měilì de shìjiè.',vi:'Đây là một thế giới tươi đẹp.'},
+  '情况':{zh:'现在的情况怎么样？',py:'Xiànzài de qíngkuàng zěnmeyàng?',vi:'Tình hình hiện tại thế nào?'},
+  '比赛':{zh:'明天有一场比赛。',py:'Míngtiān yǒu yì chǎng bǐsài.',vi:'Ngày mai có một trận thi đấu.'},
+  '继续':{zh:'请继续说下去。',py:'Qǐng jìxù shuō xiàqù.',vi:'Xin tiếp tục nói tiếp.'},
+  '心':{zh:'他心里很难过。',py:'Tā xīnli hěn nánguò.',vi:'Trong lòng anh ấy rất buồn.'},
+  '已':{zh:'会议已经开始了。',py:'Huìyì yǐjīng kāishǐ le.',vi:'Cuộc họp đã bắt đầu rồi.'},
+  '张':{zh:'请张开你的嘴。',py:'Qǐng zhāngkāi nǐ de zuǐ.',vi:'Xin há miệng ra.'},
+  '关系':{zh:'他们的关系很好。',py:'Tāmen de guānxi hěn hǎo.',vi:'Mối quan hệ của họ rất tốt.'},
+  '内':{zh:'三天内完成。',py:'Sān tiān nèi wánchéng.',vi:'Hoàn thành trong ba ngày.'},
+  '总':{zh:'他总是很忙。',py:'Tā zǒng shì hěn máng.',vi:'Anh ấy lúc nào cũng bận.'},
+  '每':{zh:'每个人都有自己的想法。',py:'Měi gè rén dōu yǒu zìjǐ de xiǎngfǎ.',vi:'Mỗi người đều có suy nghĩ riêng của mình.'},
+  '美':{zh:'这里的风景很美。',py:'Zhèlǐ de fēngjǐng hěn měi.',vi:'Phong cảnh ở đây rất đẹp.'},
+  '一切':{zh:'一切都会好起来的。',py:'Yíqiè dōu huì hǎo qǐlái de.',vi:'Mọi thứ rồi sẽ tốt lên.'},
+  '由':{zh:'这件事由我负责。',py:'Zhè jiàn shì yóu wǒ fùzé.',vi:'Việc này do tôi phụ trách.'},
+  '任何':{zh:'任何人都可以参加。',py:'Rènhé rén dōu kěyǐ cānjiā.',vi:'Bất kỳ ai cũng có thể tham gia.'},
+  '决定':{zh:'我决定明天出发。',py:'Wǒ juédìng míngtiān chūfā.',vi:'Tôi quyết định xuất phát vào ngày mai.'},
+  '只有':{zh:'只有努力才能成功。',py:'Zhǐyǒu nǔlì cáinéng chénggōng.',vi:'Chỉ có nỗ lực mới có thể thành công.'},
+  '如何':{zh:'我不知道如何解决这个问题。',py:'Wǒ bù zhīdào rúhé jiějué zhège wèntí.',vi:'Tôi không biết làm sao để giải quyết vấn đề này.'},
+  '受':{zh:'他受到了大家的欢迎。',py:'Tā shòudàole dàjiā de huānyíng.',vi:'Anh ấy được mọi người chào đón.'},
+  '使':{zh:'这个消息使他很高兴。',py:'Zhège xiāoxi shǐ tā hěn gāoxìng.',vi:'Tin này làm anh ấy rất vui.'},
+  '其实':{zh:'其实这件事很简单。',py:'Qíshí zhè jiàn shì hěn jiǎndān.',vi:'Thực ra việc này rất đơn giản.'},
+  '连':{zh:'他连饭都没吃。',py:'Tā lián fàn dōu méi chī.',vi:'Anh ấy đến cơm cũng chưa ăn.'},
+  '当然':{zh:'你当然可以来。',py:'Nǐ dāngrán kěyǐ lái.',vi:'Đương nhiên bạn có thể đến.'},
+  '部':{zh:'这部电影很有名。',py:'Zhè bù diànyǐng hěn yǒumíng.',vi:'Bộ phim này rất nổi tiếng.'},
+  '消息':{zh:'我听到了一个好消息。',py:'Wǒ tīngdàole yí gè hǎo xiāoxi.',vi:'Tôi đã nghe được một tin tốt.'},
+  '表现':{zh:'他今天表现得很好。',py:'Tā jīntiān biǎoxiàn de hěn hǎo.',vi:'Hôm nay anh ấy thể hiện rất tốt.'},
+  '解决':{zh:'我们解决了这个问题。',py:'Wǒmen jiějuéle zhège wèntí.',vi:'Chúng tôi đã giải quyết được vấn đề này.'},
+  '成功':{zh:'他终于成功了。',py:'Tā zhōngyú chénggōng le.',vi:'Cuối cùng anh ấy đã thành công.'},
+  '结束':{zh:'会议已经结束了。',py:'Huìyì yǐjīng jiéshù le.',vi:'Cuộc họp đã kết thúc rồi.'},
+  '者':{zh:'参观者请排队。',py:'Cānguānzhě qǐng páiduì.',vi:'Người tham quan xin xếp hàng.'},
+  '转':{zh:'请把车转过来。',py:'Qǐng bǎ chē zhuǎn guòlai.',vi:'Xin quay xe lại.'},
+  '调查':{zh:'他们在做一个调查。',py:'Tāmen zài zuò yí gè diàochá.',vi:'Họ đang làm một cuộc khảo sát.'},
+  '方式':{zh:'这是一种新的学习方式。',py:'Zhè shì yì zhǒng xīn de xuéxí fāngshì.',vi:'Đây là một cách học mới.'},
+  '美元':{zh:'这个手机三百美元。',py:'Zhège shǒujī sānbǎi Měiyuán.',vi:'Chiếc điện thoại này ba trăm đô la Mỹ.'},
+  '处理':{zh:'这件事你怎么处理？',py:'Zhè jiàn shì nǐ zěnme chǔlǐ?',vi:'Việc này bạn xử lý thế nào?'},
+  '强':{zh:'他的能力很强。',py:'Tā de nénglì hěn qiáng.',vi:'Năng lực của anh ấy rất mạnh.'},
+  '能力':{zh:'他有很强的工作能力。',py:'Tā yǒu hěn qiáng de gōngzuò nénglì.',vi:'Anh ấy có năng lực làm việc rất tốt.'},
+  '保护':{zh:'我们要保护环境。',py:'Wǒmen yào bǎohù huánjìng.',vi:'Chúng ta phải bảo vệ môi trường.'},
+  '管':{zh:'这件事不用你管。',py:'Zhè jiàn shì búyòng nǐ guǎn.',vi:'Việc này không cần bạn lo.'},
+  '支持':{zh:'谢谢你的支持。',py:'Xièxie nǐ de zhīchí.',vi:'Cảm ơn sự ủng hộ của bạn.'},
+  '注意':{zh:'过马路要注意安全。',py:'Guò mǎlù yào zhùyì ānquán.',vi:'Qua đường phải chú ý an toàn.'},
+  '活':{zh:'他活得很开心。',py:'Tā huó de hěn kāixīn.',vi:'Anh ấy sống rất vui vẻ.'},
+  '拍':{zh:'我给你拍张照片吧。',py:'Wǒ gěi nǐ pāi zhāng zhàopiàn ba.',vi:'Để tôi chụp cho bạn một tấm ảnh.'},
+  '整个':{zh:'整个城市都变了。',py:'Zhěnggè chéngshì dōu biàn le.',vi:'Cả thành phố đều đã thay đổi.'},
+  '极了':{zh:'这个菜好吃极了。',py:'Zhège cài hǎochī jí le.',vi:'Món này ngon cực kỳ.'},
+  '保证':{zh:'我保证不会迟到。',py:'Wǒ bǎozhèng bú huì chídào.',vi:'Tôi bảo đảm sẽ không đến muộn.'},
+  '根本':{zh:'这根本不是问题。',py:'Zhè gēnběn bú shì wèntí.',vi:'Đây căn bản không phải là vấn đề.'},
+  '城市':{zh:'北京是一个大城市。',py:'Běijīng shì yí gè dà chéngshì.',vi:'Bắc Kinh là một thành phố lớn.'},
+  '目前':{zh:'目前一切都很好。',py:'Mùqián yíqiè dōu hěn hǎo.',vi:'Hiện tại mọi thứ đều tốt.'},
+  '游戏':{zh:'他喜欢玩儿电脑游戏。',py:'Tā xǐhuan wánr diànnǎo yóuxì.',vi:'Anh ấy thích chơi trò chơi điện tử.'},
+  '马':{zh:'他喜欢骑马。',py:'Tā xǐhuan qí mǎ.',vi:'Anh ấy thích cưỡi ngựa.'},
+  '比较':{zh:'这两本书比较一下吧。',py:'Zhè liǎng běn shū bǐjiào yíxià ba.',vi:'So sánh hai cuốn sách này một chút đi.'},
+  '存在':{zh:'这个问题一直存在。',py:'Zhège wèntí yìzhí cúnzài.',vi:'Vấn đề này luôn tồn tại.'},
+  '终于':{zh:'他终于回来了。',py:'Tā zhōngyú huílái le.',vi:'Cuối cùng anh ấy đã về.'},
+  '现场':{zh:'警察到了现场。',py:'Jǐngchá dàole xiànchǎng.',vi:'Cảnh sát đã đến hiện trường.'},
+  '下来':{zh:'请你坐下来。',py:'Qǐng nǐ zuò xiàlái.',vi:'Xin bạn ngồi xuống.'},
+  '个人':{zh:'这是我个人的意见。',py:'Zhè shì wǒ gèrén de yìjiàn.',vi:'Đây là ý kiến cá nhân của tôi.'},
+  '除了':{zh:'除了他，大家都到了。',py:'Chúle tā, dàjiā dōu dào le.',vi:'Ngoài anh ấy ra, mọi người đều đến rồi.'},
+  '区':{zh:'他住在这个区。',py:'Tā zhù zài zhège qū.',vi:'Anh ấy sống ở khu vực này.'},
+  '总是':{zh:'他总是很热情。',py:'Tā zǒngshì hěn rèqíng.',vi:'Anh ấy lúc nào cũng nhiệt tình.'},
+  '指':{zh:'他指着地图说话。',py:'Tā zhǐzhe dìtú shuōhuà.',vi:'Anh ấy chỉ vào bản đồ và nói.'},
+  '精神':{zh:'他今天精神很好。',py:'Tā jīntiān jīngshén hěn hǎo.',vi:'Hôm nay tinh thần anh ấy rất tốt.'},
+  '双':{zh:'我买了一双鞋。',py:'Wǒ mǎile yì shuāng xié.',vi:'Tôi đã mua một đôi giày.'},
+  '保持':{zh:'请保持安静。',py:'Qǐng bǎochí ānjìng.',vi:'Xin giữ yên lặng.'},
+  '代表':{zh:'他代表公司来的。',py:'Tā dàibiǎo gōngsī lái de.',vi:'Anh ấy đến thay mặt công ty.'},
+  '突然':{zh:'他突然笑了。',py:'Tā tūrán xiào le.',vi:'Anh ấy đột nhiên cười.'},
+  '里面':{zh:'钱在包里面。',py:'Qián zài bāo lǐmiàn.',vi:'Tiền ở trong túi.'},
+  '确定':{zh:'你确定要去吗？',py:'Nǐ quèdìng yào qù ma?',vi:'Bạn chắc chắn muốn đi chứ?'},
+  '目标':{zh:'我们有一个共同的目标。',py:'Wǒmen yǒu yí gè gòngtóng de mùbiāo.',vi:'Chúng tôi có một mục tiêu chung.'},
+  '任务':{zh:'这是一个重要的任务。',py:'Zhè shì yí gè zhòngyào de rènwu.',vi:'Đây là một nhiệm vụ quan trọng.'},
+  '容易':{zh:'这个问题很容易。',py:'Zhège wèntí hěn róngyì.',vi:'Vấn đề này rất dễ.'},
+  '联系':{zh:'有事请联系我。',py:'Yǒu shì qǐng liánxì wǒ.',vi:'Có việc gì xin liên hệ với tôi.'},
+  '合作':{zh:'我们一起合作吧。',py:'Wǒmen yìqǐ hézuò ba.',vi:'Chúng ta cùng hợp tác đi.'},
+  '因此':{zh:'他很努力，因此成绩很好。',py:'Tā hěn nǔlì, yīncǐ chéngjì hěn hǎo.',vi:'Anh ấy rất chăm chỉ, vì vậy thành tích rất tốt.'},
+  '人员':{zh:'工作人员都很热情。',py:'Gōngzuò rényuán dōu hěn rèqíng.',vi:'Nhân viên đều rất nhiệt tình.'},
+  '按':{zh:'请按这个按钮。',py:'Qǐng àn zhège ànniǔ.',vi:'Xin bấm vào nút này.'},
+  '线':{zh:'这条线很长。',py:'Zhè tiáo xiàn hěn cháng.',vi:'Sợi dây này rất dài.'},
+  '报告':{zh:'他给我们做了一个报告。',py:'Tā gěi wǒmen zuòle yí gè bàogào.',vi:'Anh ấy đã trình bày một bản báo cáo cho chúng tôi.'},
+  '台':{zh:'桌子上有一台电脑。',py:'Zhuōzi shang yǒu yì tái diànnǎo.',vi:'Trên bàn có một chiếc máy tính.'},
+  '生命':{zh:'生命很宝贵。',py:'Shēngmìng hěn bǎoguì.',vi:'Sinh mạng rất quý giá.'},
+  '明显':{zh:'他的进步很明显。',py:'Tā de jìnbù hěn míngxiǎn.',vi:'Sự tiến bộ của anh ấy rất rõ ràng.'},
+  '伤':{zh:'他的脚受伤了。',py:'Tā de jiǎo shòushāng le.',vi:'Chân anh ấy bị thương.'},
+  '曾经':{zh:'我曾经去过北京。',py:'Wǒ céngjīng qùguo Běijīng.',vi:'Tôi đã từng đến Bắc Kinh.'},
+  '另外':{zh:'我还有另外一个问题。',py:'Wǒ hái yǒu lìngwài yí gè wèntí.',vi:'Tôi còn có một câu hỏi khác nữa.'},
+  '简单':{zh:'这个问题很简单。',py:'Zhège wèntí hěn jiǎndān.',vi:'Vấn đề này rất đơn giản.'},
+  '血':{zh:'他的手在流血。',py:'Tā de shǒu zài liúxuè.',vi:'Tay anh ấy đang chảy máu.'},
+  '到底':{zh:'你到底想要什么？',py:'Nǐ dàodǐ xiǎng yào shénme?',vi:'Rốt cuộc bạn muốn gì?'},
+  '绝对':{zh:'这绝对是真的。',py:'Zhè juéduì shì zhēn de.',vi:'Điều này chắc chắn là thật.'},
+  '坚持':{zh:'他一直坚持学习中文。',py:'Tā yìzhí jiānchí xuéxí Zhōngwén.',vi:'Anh ấy luôn kiên trì học tiếng Trung.'},
+  '派':{zh:'公司派他去北京。',py:'Gōngsī pài tā qù Běijīng.',vi:'Công ty cử anh ấy đi Bắc Kinh.'},
+  '好好':{zh:'你要好好休息。',py:'Nǐ yào hǎohǎo xiūxi.',vi:'Bạn phải nghỉ ngơi cho tốt.'},
+  '技术':{zh:'这项技术很新。',py:'Zhè xiàng jìshù hěn xīn.',vi:'Công nghệ này rất mới.'},
+  '设计':{zh:'这是我设计的。',py:'Zhè shì wǒ shèjì de.',vi:'Đây là do tôi thiết kế.'},
+  '利用':{zh:'我们要好好利用时间。',py:'Wǒmen yào hǎohǎo lìyòng shíjiān.',vi:'Chúng ta phải tận dụng thời gian cho tốt.'},
+  '性':{zh:'这件事的重要性很大。',py:'Zhè jiàn shì de zhòngyàoxìng hěn dà.',vi:'Tầm quan trọng của việc này rất lớn.'},
+  '建议':{zh:'我建议你早点休息。',py:'Wǒ jiànyì nǐ zǎodiǎn xiūxi.',vi:'Tôi đề nghị bạn nghỉ ngơi sớm hơn.'},
+  '各位':{zh:'各位，欢迎来到这里。',py:'Gèwèi, huānyíng lái dào zhèlǐ.',vi:'Kính chào quý vị, hoan nghênh đến đây.'},
+  '约':{zh:'我们约好了见面时间。',py:'Wǒmen yuēhǎole jiànmiàn shíjiān.',vi:'Chúng tôi đã hẹn thời gian gặp mặt.'},
+  '抓':{zh:'他抓住了我的手。',py:'Tā zhuāzhùle wǒ de shǒu.',vi:'Anh ấy nắm chặt tay tôi.'},
+  '光':{zh:'屋子里有很多光。',py:'Wūzi lǐ yǒu hěn duō guāng.',vi:'Trong phòng có rất nhiều ánh sáng.'},
+  '意义':{zh:'这件事很有意义。',py:'Zhè jiàn shì hěn yǒu yìyì.',vi:'Việc này rất có ý nghĩa.'},
+  '父亲':{zh:'我父亲是老师。',py:'Wǒ fùqīn shì lǎoshī.',vi:'Bố tôi là giáo viên.'},
+  '并且':{zh:'这本书有意思，并且很有用。',py:'Zhè běn shū yǒuyìsi, bìngqiě hěn yǒuyòng.',vi:'Cuốn sách này thú vị, và cũng rất hữu ích.'},
+  '金':{zh:'这是金做的。',py:'Zhè shì jīn zuò de.',vi:'Cái này làm bằng vàng.'},
+  '社会':{zh:'这是一个社会问题。',py:'Zhè shì yí gè shèhuì wèntí.',vi:'Đây là một vấn đề xã hội.'},
+  '下去':{zh:'请你说下去。',py:'Qǐng nǐ shuō xiàqù.',vi:'Xin bạn nói tiếp đi.'},
+  '证明':{zh:'他证明了自己的能力。',py:'Tā zhèngmíngle zìjǐ de nénglì.',vi:'Anh ấy đã chứng minh được năng lực của mình.'},
+  '记者':{zh:'她是一名记者。',py:'Tā shì yì míng jìzhě.',vi:'Cô ấy là một nhà báo.'},
+  '确实':{zh:'他确实很努力。',py:'Tā quèshí hěn nǔlì.',vi:'Anh ấy đúng là rất chăm chỉ.'},
+  '力':{zh:'他没有力气了。',py:'Tā méiyǒu lìqi le.',vi:'Anh ấy hết sức rồi.'},
+  '发展':{zh:'这个城市发展得很快。',py:'Zhège chéngshì fāzhǎn de hěn kuài.',vi:'Thành phố này phát triển rất nhanh.'},
+  '谈':{zh:'我们谈谈这件事吧。',py:'Wǒmen tántán zhè jiàn shì ba.',vi:'Chúng ta bàn về việc này một chút đi.'},
+  '至少':{zh:'他至少来过一次。',py:'Tā zhìshǎo láiguo yí cì.',vi:'Anh ấy ít nhất đã đến một lần.'},
+  '负责':{zh:'这件事由他负责。',py:'Zhè jiàn shì yóu tā fùzé.',vi:'Việc này do anh ấy phụ trách.'},
+  '首先':{zh:'首先，我要谢谢大家。',py:'Shǒuxiān, wǒ yào xièxie dàjiā.',vi:'Trước tiên, tôi muốn cảm ơn mọi người.'},
+  '交易':{zh:'这是一笔好交易。',py:'Zhè shì yì bǐ hǎo jiāoyì.',vi:'Đây là một thương vụ tốt.'},
+  '理解':{zh:'我理解你的感受。',py:'Wǒ lǐjiě nǐ de gǎnshòu.',vi:'Tôi hiểu cảm giác của bạn.'},
+  '报道':{zh:'报纸报道了这件事。',py:'Bàozhǐ bàodàole zhè jiàn shì.',vi:'Báo chí đã đưa tin về việc này.'},
+  '父母':{zh:'我很爱我的父母。',py:'Wǒ hěn ài wǒ de fùmǔ.',vi:'Tôi rất yêu bố mẹ mình.'},
+  '城':{zh:'他住在城里。',py:'Tā zhù zài chéng lǐ.',vi:'Anh ấy sống trong thành phố.'},
+  '安排':{zh:'我们安排一下时间吧。',py:'Wǒmen ānpái yíxià shíjiān ba.',vi:'Chúng ta sắp xếp thời gian một chút đi.'},
+  '力量':{zh:'团结就是力量。',py:'Tuánjié jiù shì lìliang.',vi:'Đoàn kết chính là sức mạnh.'},
+  '敢':{zh:'他不敢一个人去。',py:'Tā bù gǎn yí gè rén qù.',vi:'Anh ấy không dám đi một mình.'},
+  '造成':{zh:'这个错误造成了很大的问题。',py:'Zhège cuòwù zàochéngle hěn dà de wèntí.',vi:'Sai lầm này đã gây ra vấn đề rất lớn.'},
+  '某':{zh:'他在某个地方等你。',py:'Tā zài mǒu gè dìfang děng nǐ.',vi:'Anh ấy đang đợi bạn ở một nơi nào đó.'},
+  '随':{zh:'请随我来。',py:'Qǐng suí wǒ lái.',vi:'Xin đi theo tôi.'},
+  '支':{zh:'请给我一支笔。',py:'Qǐng gěi wǒ yì zhī bǐ.',vi:'Xin cho tôi một cây bút.'},
+  '人生':{zh:'这是我人生中最好的一天。',py:'Zhè shì wǒ rénshēng zhōng zuì hǎo de yì tiān.',vi:'Đây là ngày tốt đẹp nhất trong cuộc đời tôi.'},
+  '会议':{zh:'明天有一个会议。',py:'Míngtiān yǒu yí gè huìyì.',vi:'Ngày mai có một cuộc họp.'},
+  '幸福':{zh:'他们过得很幸福。',py:'Tāmen guò de hěn xìngfú.',vi:'Họ sống rất hạnh phúc.'},
+  '自然':{zh:'这是很自然的事。',py:'Zhè shì hěn zìrán de shì.',vi:'Đây là chuyện rất tự nhiên.'},
+  '责任':{zh:'这是我的责任。',py:'Zhè shì wǒ de zérèn.',vi:'Đây là trách nhiệm của tôi.'},
+  '失去':{zh:'他失去了工作。',py:'Tā shīqùle gōngzuò.',vi:'Anh ấy đã mất việc.'},
+  '赢':{zh:'我们队赢了。',py:'Wǒmen duì yíng le.',vi:'Đội chúng tôi đã thắng.'},
+  '报':{zh:'他向老师报了名。',py:'Tā xiàng lǎoshī bàole míng.',vi:'Anh ấy đã báo danh với thầy giáo.'},
+  '人民':{zh:'人民生活越来越好。',py:'Rénmín shēnghuó yuè lái yuè hǎo.',vi:'Cuộc sống người dân ngày càng tốt hơn.'},
+  '步':{zh:'他走了几步。',py:'Tā zǒule jǐ bù.',vi:'Anh ấy đã bước vài bước.'},
+  '面对':{zh:'我们要面对困难。',py:'Wǒmen yào miànduì kùnnan.',vi:'Chúng ta phải đối mặt với khó khăn.'},
+  '事件':{zh:'这是一件大事件。',py:'Zhè shì yí jiàn dà shìjiàn.',vi:'Đây là một sự kiện lớn.'},
+  '压力':{zh:'他的工作压力很大。',py:'Tā de gōngzuò yālì hěn dà.',vi:'Áp lực công việc của anh ấy rất lớn.'},
+  '结婚':{zh:'他们下个月结婚。',py:'Tāmen xià gè yuè jiéhūn.',vi:'Tháng sau họ kết hôn.'},
+  '由于':{zh:'由于下雨，比赛取消了。',py:'Yóuyú xiàyǔ, bǐsài qǔxiāo le.',vi:'Do trời mưa, trận đấu đã bị hủy.'},
+  '母亲':{zh:'我母亲很喜欢做饭。',py:'Wǒ mǔqīn hěn xǐhuan zuòfàn.',vi:'Mẹ tôi rất thích nấu ăn.'},
+  '同意':{zh:'我同意你的看法。',py:'Wǒ tóngyì nǐ de kànfǎ.',vi:'Tôi đồng ý với quan điểm của bạn.'},
+  '训练':{zh:'他每天都训练。',py:'Tā měitiān dōu xùnliàn.',vi:'Anh ấy tập luyện mỗi ngày.'},
+  '部门':{zh:'他在哪个部门工作？',py:'Tā zài nǎge bùmén gōngzuò?',vi:'Anh ấy làm việc ở bộ phận nào?'},
+  '过程':{zh:'学习是一个过程。',py:'Xuéxí shì yí gè guòchéng.',vi:'Học tập là một quá trình.'},
+  '深':{zh:'这条河很深。',py:'Zhè tiáo hé hěn shēn.',vi:'Con sông này rất sâu.'},
+  '各':{zh:'各国都派人来了。',py:'Gè guó dōu pài rén lái le.',vi:'Các nước đều cử người đến.'},
+  '选手':{zh:'他是一名运动选手。',py:'Tā shì yì míng yùndòng xuǎnshǒu.',vi:'Anh ấy là một vận động viên.'},
+  '仍然':{zh:'他仍然在学习。',py:'Tā réngrán zài xuéxí.',vi:'Anh ấy vẫn đang học.'},
+  '显示':{zh:'结果显示他是对的。',py:'Jiéguǒ xiǎnshì tā shì duì de.',vi:'Kết quả cho thấy anh ấy đúng.'},
+  '属于':{zh:'这本书属于我。',py:'Zhè běn shū shǔyú wǒ.',vi:'Cuốn sách này thuộc về tôi.'},
+  '值得':{zh:'这个地方值得一去。',py:'Zhège dìfang zhíde yí qù.',vi:'Nơi này đáng để đến một lần.'},
+  '人类':{zh:'人类需要保护地球。',py:'Rénlèi xūyào bǎohù dìqiú.',vi:'Nhân loại cần bảo vệ trái đất.'},
+  '亲':{zh:'他的双亲都很健康。',py:'Tā de shuāngqīn dōu hěn jiànkāng.',vi:'Cha mẹ anh ấy đều khoẻ mạnh.'},
+  '经历':{zh:'这是一次难忘的经历。',py:'Zhè shì yí cì nánwàng de jīnglì.',vi:'Đây là một trải nghiệm khó quên.'},
+  '仍':{zh:'他仍在等你。',py:'Tā réng zài děng nǐ.',vi:'Anh ấy vẫn đang đợi bạn.'},
+  '紧张':{zh:'考试前他很紧张。',py:'Kǎoshì qián tā hěn jǐnzhāng.',vi:'Trước kỳ thi anh ấy rất căng thẳng.'},
+  '仅':{zh:'这仅是一个开始。',py:'Zhè jǐn shì yí gè kāishǐ.',vi:'Đây chỉ mới là một khởi đầu.'},
+  '挂':{zh:'请把外套挂起来。',py:'Qǐng bǎ wàitào guà qǐlái.',vi:'Xin treo áo khoác lên.'},
+  '事实':{zh:'这是一个事实。',py:'Zhè shì yí gè shìshí.',vi:'Đây là một sự thật.'},
+  '本来':{zh:'我本来想去，但没有时间。',py:'Wǒ běnlái xiǎng qù, dàn méiyǒu shíjiān.',vi:'Vốn dĩ tôi muốn đi, nhưng không có thời gian.'},
+  '基本':{zh:'这是基本的知识。',py:'Zhè shì jīběn de zhīshi.',vi:'Đây là kiến thức cơ bản.'},
+  '类':{zh:'这类问题很常见。',py:'Zhè lèi wèntí hěn chángjiàn.',vi:'Loại vấn đề này rất thường gặp.'},
+  '专家':{zh:'他是这方面的专家。',py:'Tā shì zhè fāngmiàn de zhuānjiā.',vi:'Anh ấy là chuyên gia trong lĩnh vực này.'},
 };
 const LEVEL_META = {
   1: {title:'HSK 1', sub:'Cơ bản', color:'coral', emoji:'🌱'},
@@ -5723,7 +6698,7 @@ function toast(msg){
    PROGRESS STORAGE (v2 — mastery based)
    ============================================================ */
 const STORAGE_KEY = 'zhLearnProgress_v2';
-function defaultProgress(){ return { lastVisit:null, streak:0, batchSize:10, words:{} }; }
+function defaultProgress(){ return { lastVisit:null, streak:0, batchSize:10, words:{}, goal:10, daily:{date:'',words:[]}, goalDate:null, visited:{} }; }
 
 function loadProgress(){
   try{
@@ -5755,12 +6730,39 @@ function saveProgress(){
 let progress = loadProgress();
 
 function touchStreak(){
-  const today = new Date().toDateString();
-  if(progress.lastVisit === today) return;
-  const y = new Date(); y.setDate(y.getDate()-1);
-  progress.streak = (progress.lastVisit === y.toDateString()) ? progress.streak + 1 : 1;
-  progress.lastVisit = today;
+  // Chuỗi ngày nay tính theo "đạt mục tiêu ngày" (xem noteCorrect/checkGoal), không còn tính theo việc chỉ mở app.
+  // Với dữ liệu cũ đang có chuỗi: giữ lại bằng cách coi ngày ghé thăm cuối là ngày đạt mục tiêu cuối.
+  if(!progress.goalDate && progress.streak > 0 && progress.lastVisit) progress.goalDate = progress.lastVisit;
+  progress.lastVisit = new Date().toDateString();
   saveProgress();
+}
+function yesterdayStr(){ const y = new Date(); y.setDate(y.getDate()-1); return y.toDateString(); }
+function effectiveStreak(){
+  const g = progress.goalDate;
+  return (g && (g === new Date().toDateString() || g === yesterdayStr())) ? progress.streak : 0;
+}
+function dailyState(){
+  const t = new Date().toDateString();
+  if(!progress.daily || progress.daily.date !== t) progress.daily = { date:t, words:[] };
+  return progress.daily;
+}
+function dailyCount(){ return dailyState().words.length; }
+function checkGoal(){
+  const t = new Date().toDateString();
+  if(dailyCount() >= progress.goal && progress.goalDate !== t){
+    progress.streak = (progress.goalDate === yesterdayStr()) ? progress.streak + 1 : 1;
+    progress.goalDate = t;
+    saveProgress();
+    toast('🎯 Đạt mục tiêu hôm nay! 🔥 ' + progress.streak + ' ngày');
+  }
+}
+function noteCorrect(hanzi){
+  const d = dailyState();
+  if(d.words.includes(hanzi)) return;
+  d.words.push(hanzi);
+  saveProgress();
+  checkGoal();
+  const sc = $('#streak-count'); if(sc) sc.textContent = effectiveStreak();
 }
 
 /* ---- mastery helpers ---- */
@@ -5778,6 +6780,7 @@ function markPassed(hanzi, format){
    không phải mọi từ trong app đều có lịch — chỉ từ đã "chạm" tới. */
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 function srsSchedule(hanzi, correct){
+  if(correct) noteCorrect(hanzi);
   const wp = wordProg(hanzi);
   if(!wp.srs) wp.srs = { interval:0, ease:2.5, reps:0, due: todayISO() };
   const s = wp.srs;
@@ -5874,9 +6877,13 @@ function goTo(view){
   state.view = view;
   $$('.view').forEach(v=>v.classList.remove('active'));
   $('#view-'+view).classList.add('active');
-  $$('.nav-btn').forEach(b=> b.classList.toggle('active', b.dataset.nav===view));
+  const NAV_OF = { level:'vocab', lesson:'vocab', quiz:'vocab', phonetics:'path', radicals:'path', grammar:'path', review:'home' };
+  $$('.nav-btn').forEach(b=> b.classList.toggle('active', b.dataset.nav===(NAV_OF[view]||view)));
+  if(view==='phonetics' || view==='radicals' || view==='grammar'){ progress.visited[view] = true; saveProgress(); }
   window.scrollTo({top:0, behavior:'smooth'});
   if(view==='home') renderHome();
+  if(view==='path') renderPath();
+  if(view==='vocab') renderVocab();
   if(view==='level') renderBatchPicker();
   if(view==='progress') renderProgress();
   if(view==='review' && !state.review) goTo('home'); // an toàn nếu vào thẳng URL view-review mà chưa có phiên ôn tập
@@ -5889,7 +6896,7 @@ $$('[data-nav]').forEach(b=>{
 /* ============================================================
    HOME
    ============================================================ */
-function renderHome(){
+function renderVocab(){
   const grid = $('#level-grid'); grid.innerHTML='';
   [1,2,3,4].forEach(level=>{
     const meta = LEVEL_META[level];
@@ -5909,14 +6916,92 @@ function renderHome(){
     card.addEventListener('click', ()=> openLevel(level));
     grid.appendChild(card);
   });
+}
 
+/* ---- Lộ trình người mới: các bước gợi ý (do mình sắp xếp, không phải chuẩn HSK) ---- */
+function pathSteps(){
+  const h1 = levelWordList(1);
+  const wordStep = (id, title, a, b)=>{
+    const ws = h1.slice(a, b);
+    const m = ws.filter(w=>isMastered(w.hanzi)).length;
+    return { id, type:'words', icon:'📗', title, start:a, ws, done: ws.length>0 && m===ws.length,
+             sub: `Đã thuộc ${m}/${ws.length} từ` };
+  };
+  const info = (id, view, icon, title, sub)=>({ id, type:'info', view, icon, title, sub, done: !!progress.visited[view] });
+  return [
+    info('p1','phonetics','🔤','Phát âm cơ bản','4 thanh điệu · phụ âm · vần'),
+    wordStep('w1','HSK 1 · 30 từ đầu', 0, 30),
+    info('p2','radicals','部','Bộ thủ thường gặp','Học “linh kiện” của chữ Hán'),
+    wordStep('w2','HSK 1 · 30 từ tiếp theo', 30, 60),
+    info('p3','grammar','📐','Ngữ pháp cơ bản','Vài cấu trúc câu hay gặp'),
+    wordStep('w3','HSK 1 · phần còn lại', 60, h1.length),
+    { id:'lv2', type:'level', icon:'🎓', title:'Sang HSK 2', sub:'Mở danh sách từ vựng HSK 2', done:false }
+  ];
+}
+function runStep(step){
+  if(step.type==='info'){ goTo(step.view); return; }
+  if(step.type==='level'){ openLevel(2); return; }
+  const k = step.ws.findIndex(w=>!isMastered(w.hanzi));
+  const gi = step.start + (k<0 ? 0 : k);
+  const bi = Math.floor(gi / progress.batchSize);
+  if(isBatchUnlocked(1, bi)) openBatch(1, bi);
+  else toast('Nhóm này chưa mở khoá — hãy thuộc hết nhóm trước đó nhé 🔒');
+}
+function renderPath(){
+  const steps = pathSteps();
+  const cur = steps.find(st=>!st.done);
+  const list = $('#path-list'); list.innerHTML='';
+  steps.forEach((st, i)=>{
+    const isCur = st === cur;
+    const b = el('button', 'path-step'+(isCur?' current':'')+(st.done?' done':''));
+    b.innerHTML = `<div class="ps-ic">${st.icon}</div>
+      <div><div class="ps-title">${i+1}. ${st.title}${isCur?'<span class="ps-badge">Đang ở đây</span>':''}</div>
+      <div class="ps-sub">${st.sub}</div></div>
+      <div class="ps-state">${st.done?'✅':'›'}</div>`;
+    b.addEventListener('click', ()=> runStep(st));
+    list.appendChild(b);
+  });
+}
+function renderNext(){
+  const steps = pathSteps();
+  const cur = steps.find(st=>!st.done) || steps[steps.length-1];
+  const started = Object.keys(progress.words).length>0 || Object.keys(progress.visited).length>0;
+  $('#next-card').innerHTML = `
+    <div class="nc-label">👉 Bước tiếp theo${started?'':' · dành cho người mới'}</div>
+    <div class="nc-main"><div class="nc-ic">${cur.icon}</div>
+      <div><div class="nc-title">${cur.title}</div><div class="nc-sub">${cur.sub}</div></div></div>
+    <button class="btn btn-primary btn-block" id="next-go">${started?'Tiếp tục':'Bắt đầu'}</button>
+    <button class="link-btn" id="next-path">Xem cả lộ trình →</button>`;
+  $('#next-go').addEventListener('click', ()=> runStep(cur));
+  $('#next-path').addEventListener('click', ()=> goTo('path'));
+}
+function renderGoal(){
+  const n = dailyCount(), g = progress.goal;
+  const pct = Math.min(100, Math.round(n/g*100));
+  const box = $('#goal-card');
+  box.innerHTML = `
+    <div class="gc-top"><span>🎯 Mục tiêu hôm nay</span><span>${Math.min(n,g)}/${g} từ</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+    <div class="gc-note">Tính số từ <b>khác nhau</b> bạn trả lời đúng hôm nay (trong quiz hoặc ôn tập). Đạt mục tiêu mới tính là 1 ngày trong chuỗi 🔥.</div>
+    <div class="batch-size-row"></div>`;
+  const row = box.querySelector('.batch-size-row');
+  [5,10,15].forEach(v=>{
+    const c = el('button', 'size-chip'+(g===v?' active':''), v+' từ/ngày');
+    c.addEventListener('click', ()=>{ progress.goal = v; saveProgress(); checkGoal(); renderGoal(); });
+    row.appendChild(c);
+  });
+}
+
+function renderHome(){
   const o = overallStats();
   $('#home-bar-fill').style.width = o.pct+'%';
   $('#home-bar-label').textContent = `Đã thuộc ${o.mastered}/${o.total} từ`;
   $('#home-bar-pct').textContent = o.pct+'%';
   $('#ring-btn').style.setProperty('--pct', o.pct);
   $('#ring-pct').textContent = o.pct+'%';
-  $('#streak-count').textContent = progress.streak;
+  $('#streak-count').textContent = effectiveStreak();
+  renderNext();
+  renderGoal();
 
   const due = dueWords();
   const banner = $('#due-banner');
@@ -6321,7 +7406,7 @@ function renderResults(){
 function renderProgress(){
   const o = overallStats();
   $('#stat-words').textContent = o.mastered;
-  $('#stat-streak').textContent = progress.streak;
+  $('#stat-streak').textContent = effectiveStreak();
   $('#stat-quiz').textContent = o.pct+'%';
   const list = $('#progress-list'); list.innerHTML='';
   [1,2,3,4].forEach(level=>{
@@ -6547,6 +7632,7 @@ $('#chat-mic').addEventListener('click', ()=>{
    ============================================================ */
 touchStreak();
 renderHome();
+renderVocab();
 initChat();
 renderPhonetics();
 renderRadicals();
